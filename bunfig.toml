@@ -1,0 +1,6 @@
+# Bun is the runtime + package manager (SPEC §3, ADR-0001).
+# Unit tests run via Vitest (`bun run test`), not `bun test`.
+
+[install]
+# Use the binary lockfile (bun.lockb), committed for reproducibility.
+exact = false

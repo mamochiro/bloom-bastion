@@ -86,12 +86,16 @@ bloom-bastion/
 
 **M0 — Foundation** (in progress)
 
-Tasks remaining:
-- [ ] Scaffold with Bun + Vite 6 + TS + Pixi + bitECS (`bun create vite`)
-- [ ] Integrate design tokens
-- [ ] Smoke test: render canvas with 1 tower + 1 enemy walking path
-- [ ] Set up Vitest + Playwright
+Tasks:
+- [x] Scaffold with Bun + Vite 6 + TS strict + Pixi v8 + React 19 + Biome
+- [x] Integrate design tokens (from `design-assets/export/`, see ADR-0002)
+- [x] Pixi app boots, renders dark battlefield + design-token grid
+- [x] Vitest wired (smoke test green); Playwright dep installed
+- [ ] Smoke test: render canvas with 1 tower + 1 enemy walking path (needs ECS world + sprites — M1 boundary)
+- [ ] Playwright e2e config + first happy-path test
 - [ ] Deploy preview to Vercel
+
+Gate status: `bun run check` green (Biome · tsc · Vitest · build). Bundle ≈198KB gzipped JS (budget <400KB).
 
 See SPEC §13 for full roadmap.
 
@@ -99,6 +103,9 @@ See SPEC §13 for full roadmap.
 
 (Append-only log. Newest first.)
 
+- **2026-06-05** — M0 scaffold landed: Bun+Vite6+React19+Pixi v8 boots grid canvas; `bun run check` green (~198KB gz JS)
+- **2026-06-05** — ADR-0002: adopted designer's exported tokens + type (Baloo 2/Nunito) as visual source of truth; SPEC §2.3/§2.4 updated. Audio/biomes/i18n/difficulty-naming scope flagged as open decisions.
+- **2026-06-05** — Added tmux multi-agent orchestration (`scripts/`, `~/.claude/profiles/bloom-*.md`)
 - **2026-06-05** — Added 6 project subagents in `.claude/agents/` (engine-dev, gameplay-dev, ui-dev, perf-guardian, test-engineer, spec-reviewer)
 - **2026-06-05** — Stack modernized: Bun (runtime/PM) + Vite 6 + React 19 + Biome; Bun runs Vite, not replaces it
 - **2026-06-05** — Design phase complete, assets in `design-assets/`

@@ -15,4 +15,5 @@ playwright-report/
 .claude/sessions/
 .claude/state/
 .claude/settings.local.json
+.claude/memory/session-log.md
 .harness-mem/

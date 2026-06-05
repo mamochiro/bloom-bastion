@@ -1,0 +1,44 @@
+@import "./tokens.css";
+@import "./keyframes.css";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root,
+#game {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-bright);
+  font-family: var(--font-body);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Pixi canvas behind, React HUD overlay in front (SPEC §4.1). */
+#game {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+#root {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  /* Let pointer events fall through to the canvas except on real UI. */
+  pointer-events: none;
+}
+
+#root > * {
+  pointer-events: auto;
+}
