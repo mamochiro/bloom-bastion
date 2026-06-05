@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env
+.env.local
+.vercel/
+coverage/
+test-results/
+playwright-report/
+.vite/
+*.tsbuildinfo
+
+# Claude Code / harness local state (do not commit; agents, commands & settings.json ARE committed)
+.claude/sessions/
+.claude/state/
+.claude/settings.local.json
+.harness-mem/

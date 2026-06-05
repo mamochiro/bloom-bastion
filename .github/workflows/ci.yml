@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint · Typecheck · Test · Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          # Once `.bun-version` is committed (at scaffold time), switch to:
+          #   bun-version-file: .bun-version
+          bun-version: latest
+
+      # The repo may hold only docs before the app is scaffolded.
+      # Skip build steps gracefully until package.json exists.
+      - name: Detect scaffold
+        id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No package.json yet — skipping build job until project is scaffolded."
+          fi
+
+      - name: Install (frozen lockfile)
+        if: steps.scaffold.outputs.ready == 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Lint + format (Biome)
+        if: steps.scaffold.outputs.ready == 'true'
+        run: bun run lint
+
+      - name: Typecheck (tsc --noEmit)
+        if: steps.scaffold.outputs.ready == 'true'
+        run: bun run typecheck
+
+      - name: Unit tests (Vitest)
+        if: steps.scaffold.outputs.ready == 'true'
+        run: bunx vitest run
+
+      - name: Build (Vite)
+        if: steps.scaffold.outputs.ready == 'true'
+        run: bun run build
+
+      # SPEC §5 hard limit: JS bundle < 500KB gzipped. Fail the build if exceeded.
+      - name: Bundle size gate (< 500KB gzipped JS)
+        if: steps.scaffold.outputs.ready == 'true'
+        run: |
+          TOTAL=$(find dist -name '*.js' -type f -exec sh -c 'gzip -c "$1" | wc -c' _ {} \; | awk '{s+=$1} END{print s+0}')
+          echo "Gzipped JS total: ${TOTAL} bytes (limit 512000)"
+          echo "### Bundle size" >> "$GITHUB_STEP_SUMMARY"
+          echo "Gzipped JS: **$((TOTAL / 1024)) KB** / 500 KB limit" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$TOTAL" -gt 512000 ]; then
+            echo "::error::Gzipped JS ${TOTAL} bytes exceeds 500KB hard limit (SPEC §5)"
+            exit 1
+          fi
