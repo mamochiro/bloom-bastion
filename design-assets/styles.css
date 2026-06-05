@@ -1,0 +1,274 @@
+/* ============================================================
+   BLOOM BASTION — Design Tokens & Base Styles
+   "Cute but deadly" tower defense. Flat vector + glow.
+   ============================================================ */
+
+:root {
+  /* ---------- BACKGROUNDS (deep navy/violet battlefield) ---------- */
+  --bg-abyss:    #0e0820;   /* deepest letterbox / behind-stage */
+  --bg-deep:     #1a0f2e;   /* primary app background */
+  --bg-stage:    #241544;   /* the battlefield stage */
+  --bg-panel:    #2d1b4e;   /* HUD panels, cards */
+  --bg-elevated: #3a2563;   /* raised / hover surfaces */
+  --bg-line:     #4a2f7a;   /* hairlines, dividers, grid */
+
+  /* ---------- TOWER FAMILY: BLOSSOM (cherry pink) ---------- */
+  --blossom-light: #ffd6e8;
+  --blossom-mid:   #ff6fa5;
+  --blossom-dark:  #c43d77;
+
+  /* ---------- TOWER FAMILY: STORMCLOUD (sky blue) ---------- */
+  --storm-light: #d2ecff;
+  --storm-mid:   #5db8ff;
+  --storm-dark:  #2a6fae;
+
+  /* ---------- TOWER FAMILY: SUGAR CANNON (candy coral) ---------- */
+  --sugar-light: #ffd9d2;
+  --sugar-mid:   #ff7a6b;
+  --sugar-dark:  #d6463a;
+
+  /* ---------- TOWER FAMILY: LUNA CRYSTAL (lavender) ---------- */
+  --luna-light: #e6dcff;
+  --luna-mid:   #b388ff;
+  --luna-dark:  #7a4fd6;
+
+  /* ---------- TOWER FAMILY: HIVE (honey amber) ---------- */
+  --hive-light: #ffe9b0;
+  --hive-mid:   #ffb74d;
+  --hive-dark:  #e07b1f;
+
+  /* ---------- TOWER FAMILY: BUBBLER (mint aqua) ---------- */
+  --bubble-light: #c6fff0;
+  --bubble-mid:   #4fe0c4;
+  --bubble-dark:  #1f9e85;
+
+  /* ---------- HUD ACCENTS ---------- */
+  --gold:        #ffd700;
+  --gold-deep:   #d9a400;
+  --danger:      #ff4d6d;   /* hp-low / damage */
+  --success:     #44e08a;   /* hp-high / confirm */
+  --xp-blue:     #5db8ff;
+
+  /* ---------- HP STATE RAMP ---------- */
+  --hp-high: #44e08a;
+  --hp-mid:  #ffd34d;
+  --hp-low:  #ff4d6d;
+
+  /* ---------- ENEMY-SIDE (corruption) ---------- */
+  --shade-core: #8c4dff;
+  --shade-glow: #c77dff;
+
+  /* ---------- TEXT ---------- */
+  --text-bright: #fff6ff;
+  --text-soft:   #cabbe6;
+  --text-dim:    #8c7bb0;
+  --text-faint:  #5d4d80;
+
+  /* ---------- TYPE ---------- */
+  --font-display: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+  --font-num: 'Baloo 2', 'Nunito', sans-serif;
+
+  /* ---------- RADII ---------- */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 30px;
+  --r-pill: 999px;
+
+  /* ---------- SPACING SCALE (8pt) ---------- */
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
+  --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+
+  /* ---------- SHADOWS / GLOW ---------- */
+  --shadow-panel: 0 18px 40px -12px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04) inset;
+  --shadow-card:  0 10px 28px -10px rgba(0,0,0,.55);
+  --touch: 56px; /* minimum touch target */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-deep);
+  color: var(--text-bright);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background:
+    radial-gradient(900px 600px at 80% -10%, rgba(179,136,255,.16), transparent 60%),
+    radial-gradient(700px 500px at 10% 110%, rgba(79,224,196,.10), transparent 55%),
+    var(--bg-deep);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; margin: 0; line-height: 1.05; }
+p { line-height: 1.55; }
+
+.num { font-family: var(--font-num); font-weight: 700; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; letter-spacing: .01em; }
+
+::selection { background: var(--blossom-mid); color: #fff; }
+
+/* ---------- SCROLLBAR ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-abyss); }
+::-webkit-scrollbar-thumb { background: var(--bg-line); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--luna-dark); }
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+#root { min-height: 100vh; }
+
+.shell { max-width: 1180px; margin: 0 auto; padding: 0 var(--s5) var(--s8); }
+
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  backdrop-filter: blur(14px);
+  background: linear-gradient(180deg, rgba(20,12,38,.92), rgba(20,12,38,.72));
+  border-bottom: 1px solid var(--bg-line);
+}
+.topbar-inner { max-width: 1180px; margin: 0 auto; padding: 12px var(--s5); display: flex; align-items: center; gap: var(--s4); }
+
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-glyph { width: 38px; height: 38px; filter: drop-shadow(0 0 10px rgba(255,111,165,.6)); }
+.brand-name { font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: .2px; }
+.brand-name .a { color: var(--blossom-mid); }
+.brand-name .b { color: var(--bubble-mid); }
+.brand-tag { font-size: 12px; color: var(--text-dim); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+
+/* ---------- TABS ---------- */
+.tabs {
+  display: flex; gap: 4px; overflow-x: auto; padding: 8px var(--s5);
+  max-width: 1180px; margin: 0 auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: 0 0 auto;
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  color: var(--text-dim);
+  background: transparent; border: 0; cursor: pointer;
+  padding: 9px 15px; border-radius: var(--r-pill);
+  transition: all .18s ease; white-space: nowrap;
+  display: flex; align-items: center; gap: 7px;
+}
+.tab:hover { color: var(--text-bright); background: var(--bg-panel); }
+.tab.active { color: #1a0f2e; background: linear-gradient(180deg, var(--gold), var(--gold-deep)); box-shadow: 0 4px 14px -4px var(--gold); }
+.tab .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ---------- SECTIONS ---------- */
+.section { padding-top: var(--s7); }
+.eyebrow { font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--luna-mid); margin-bottom: 10px; }
+.h-xl { font-size: clamp(34px, 6vw, 60px); letter-spacing: -.5px; }
+.h-lg { font-size: clamp(26px, 4vw, 38px); }
+.h-md { font-size: 22px; }
+.lead { color: var(--text-soft); font-size: 17px; max-width: 62ch; }
+.muted { color: var(--text-dim); }
+
+.divider { height: 1px; background: var(--bg-line); border: 0; margin: var(--s7) 0; opacity: .6; }
+
+/* ---------- CARDS / PANELS ---------- */
+.card {
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-stage));
+  border: 1px solid var(--bg-line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+.grid { display: grid; gap: var(--s4); }
+.label { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text-soft); }
+.mono { font-family: 'Baloo 2', monospace; font-size: 12.5px; }
+.code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 12.5px; color: var(--bubble-light);
+  background: var(--bg-abyss); border: 1px solid var(--bg-line);
+  border-radius: var(--r-sm); padding: 2px 8px;
+}
+.tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-display); font-weight: 700; font-size: 12px;
+  padding: 4px 11px; border-radius: var(--r-pill);
+  background: var(--bg-elevated); color: var(--text-soft); border: 1px solid var(--bg-line);
+}
+
+/* ---------- BUTTONS (game style) ---------- */
+.btn {
+  font-family: var(--font-display); font-weight: 800; font-size: 16px;
+  border: 0; cursor: pointer; border-radius: var(--r-pill);
+  padding: 13px 26px; min-height: var(--touch);
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  transition: transform .12s cubic-bezier(.34,1.56,.64,1), filter .15s, box-shadow .15s;
+  position: relative;
+}
+.btn:active { transform: translateY(2px) scale(.98); }
+.btn-primary {
+  color: #2a0d1c;
+  background: linear-gradient(180deg, var(--blossom-light), var(--blossom-mid));
+  box-shadow: 0 6px 0 var(--blossom-dark), 0 12px 22px -6px rgba(255,111,165,.6);
+}
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary:active { box-shadow: 0 2px 0 var(--blossom-dark), 0 6px 14px -6px rgba(255,111,165,.6); }
+.btn-gold {
+  color: #2a1d00;
+  background: linear-gradient(180deg, #ffe88a, var(--gold));
+  box-shadow: 0 6px 0 var(--gold-deep), 0 12px 22px -6px rgba(255,215,0,.5);
+}
+.btn-gold:active { box-shadow: 0 2px 0 var(--gold-deep); }
+.btn-ghost {
+  color: var(--text-soft); background: var(--bg-panel);
+  border: 1px solid var(--bg-line); box-shadow: 0 5px 0 rgba(0,0,0,.3);
+}
+.btn-ghost:hover { background: var(--bg-elevated); color: var(--text-bright); }
+
+/* ---------- GLOW HELPERS ---------- */
+.glow-soft { filter: drop-shadow(0 0 6px currentColor); }
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes bob-sm { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes pulse-glow { 0%,100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.14); } }
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes flutter { 0%,100% { transform: scaleX(1); } 50% { transform: scaleX(.62); } }
+@keyframes rise { 0% { transform: translateY(8px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-26px); opacity: 0; } }
+@keyframes petal-fall { 0% { transform: translate(0,0) rotate(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(var(--dx,14px), 40px) rotate(220deg); opacity: 0; } }
+@keyframes flicker { 0%, 92%, 100% { opacity: .35; } 94%, 98% { opacity: 1; } }
+@keyframes walk-waddle { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes orbit { from { transform: rotate(0) translateX(13px) rotate(0); } to { transform: rotate(360deg) translateX(13px) rotate(-360deg); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes hitflash { 0% { filter: brightness(3) saturate(0) drop-shadow(0 0 8px #fff); transform: scale(1.12); } 30% { filter: brightness(1) saturate(1); transform: scale(.94); } 100% { filter: none; transform: scale(1); } }
+@keyframes enemydeath { 0% { transform: scale(1) rotate(0); opacity: 1; } 30% { transform: scale(1.2) rotate(-6deg); opacity: 1; } 100% { transform: scale(.2) rotate(40deg) translateY(20px); opacity: 0; } }
+@keyframes shake { 10%,90% { transform: translate(-1px,0); } 20%,80% { transform: translate(3px,0); } 30%,50%,70% { transform: translate(-6px,1px); } 40%,60% { transform: translate(6px,-1px); } }
+@keyframes burst-out { from { transform: translate(0,0) scale(1); opacity: 1; } to { transform: translate(var(--bx), var(--by)) scale(0); opacity: 0; } }
+@keyframes ring-out { from { transform: scale(.2); opacity: .9; } to { transform: scale(2.4); opacity: 0; } }
+@keyframes popnum { 0% { transform: translateY(0) scale(.6); opacity: 0; } 25% { transform: translateY(-10px) scale(1.2); opacity: 1; } 100% { transform: translateY(-40px) scale(1); opacity: 0; } }
+@keyframes enemymarch { 0% { transform: translate(0,0); } 50% { transform: translate(-30px,40px); } 100% { transform: translate(-58px,8px); } }
+@keyframes enemymarch2 { 0% { transform: translate(0,0); } 50% { transform: translate(38px,28px); } 100% { transform: translate(70px,70px); } }
+@keyframes projfly { 0% { transform: translateX(0) scale(.6); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateX(230px) scale(1); opacity: 0; } }
+@keyframes enemywalk { 0% { transform: translateX(-22px); } 50% { transform: translateX(22px) scaleX(1); } 51% { transform: translateX(22px) scaleX(-1); } 100% { transform: translateX(-22px) scaleX(-1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+}
+
+/* ---------- ENTRANCE on tab change ----------
+   Base state is fully visible (opacity:1). We ONLY animate transform,
+   so a stalled animation (capture, print/PDF, backgrounded tab) still
+   shows content rather than compositing the panel to opacity:0. */
+@keyframes fadeUp { from { transform: translateY(12px); } to { transform: translateY(0); } }
+.section { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .section { animation: fadeUp .34s cubic-bezier(.22,1,.36,1) both; }
+}
+
+/* ---------- UTILITY ---------- */
+.row { display: flex; align-items: center; }
+.col { display: flex; flex-direction: column; }
+.wrap { flex-wrap: wrap; }
+.gap2 { gap: var(--s2); } .gap3 { gap: var(--s3); } .gap4 { gap: var(--s4); } .gap5 { gap: var(--s5); }
+.center { align-items: center; justify-content: center; }
+.between { justify-content: space-between; }
+.fill { width: 100%; }
