@@ -1,16 +1,14 @@
 /**
  * DeathSystem (SPEC §4.2 slot 7) — reward + cleanup for dead enemies, AND the
- * fold-in home of win/lose detection (no new §4.2 slot — reordering needs an
- * ADR). Runs last among the simulation systems, so it sees the frame's final
- * lives + enemy count.
+ * fold-in home of win/lose detection (no new §4.2 slot). Runs last among the
+ * simulation systems, so it sees the frame's final lives + enemy count.
  *
  * Per enemy with Health ≤ 0: grant the SPEC §6.2 kill reward, recycle to the
  * pool. Then (SPEC §6.6):
- *   - lives ≤ 0                         → setPhase('lost')
- *   - wave fully spawned && 0 enemies   → setPhase('won')   (last wave cleared;
- *                                          multi-wave 'won' arrives with waves)
- * Once the phase leaves 'playing' the pause guard freezes this + the other sim
- * systems next frame.
+ *   - lives ≤ 0                                    → setPhase('lost')
+ *   - LAST wave complete && 0 enemies && lives > 0 → setPhase('won')
+ * The last-wave guard is critical: clearing wave 1 or 2 leaves 0 enemies during
+ * the inter-wave gap, which must NOT win — only the final wave's clear wins.
  *
  * Iterates backward (releasing strips Enemy, swap-popping the query array).
  * Death particles / floating text are DEFERRED (pure juice, later slice).
@@ -24,11 +22,12 @@ import { releaseEnemy } from "../entities/create-enemy";
 import { SpawnSystem } from "./spawn";
 
 /**
- * Build a DeathSystem. `isWaveComplete` defaults to the live wave instance;
- * tests inject a stub to control the 'won' condition deterministically.
+ * Build a DeathSystem. `isFinalWaveComplete` defaults to "the live wave is the
+ * last AND fully spawned"; tests inject a stub to control the 'won' condition.
  */
 export function createDeathSystem(
-  isWaveComplete: () => boolean = () => SpawnSystem.isComplete(),
+  isFinalWaveComplete: () => boolean = () =>
+    SpawnSystem.isWaveComplete() && SpawnSystem.isLastWave(),
 ): System {
   return (world: World, _dt: number): World => {
     if (isSimPaused()) return world; // run already ended → frozen
@@ -43,15 +42,16 @@ export function createDeathSystem(
       releaseEnemy(world, eid);
     }
 
-    // End-of-run detection (SPEC §6.6). Lose takes priority over win.
+    // End-of-run detection (SPEC §6.6). Lose takes priority over win; win only
+    // on the FINAL wave's clear (not the inter-wave gaps after waves 1/2).
     if (getLives(world) <= 0) {
       setPhase("lost");
-    } else if (isWaveComplete() && enemyQuery(world).length === 0) {
+    } else if (isFinalWaveComplete() && enemyQuery(world).length === 0) {
       setPhase("won");
     }
     return world;
   };
 }
 
-/** Live instance wired into the pipeline (reads the live wave's completion). */
+/** Live instance wired into the pipeline (reads the live wave's progress). */
 export const DeathSystem: System = createDeathSystem();

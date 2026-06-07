@@ -9,10 +9,11 @@
  * Iterates backward (releasing strips `Hit`, swap-popping the query array).
  */
 import { hasComponent } from "bitecs";
-import { Health, Projectile, Status, type World } from "../../engine/ecs/world";
+import { Enemy, Health, Projectile, Status, type World } from "../../engine/ecs/world";
 import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
 import { SLOW_DURATION_S, SPECIAL } from "../config/combat";
+import { ENEMY_BY_TYPE } from "../config/enemies";
 import { hitQuery } from "../ecs/components";
 import { isSimPaused } from "../ecs/game-state";
 import { releaseProjectile } from "../entities/create-projectile";
@@ -25,7 +26,10 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
     const target = Projectile.targetId[proj];
 
     if (hasComponent(world, Health, target)) {
-      Health.current[target] -= Projectile.damage[proj];
+      // Armor (SPEC §6.2): effective = damage * (1 - armor). Snail 0.5 → half;
+      // Grub (armor undefined) → full.
+      const armor = ENEMY_BY_TYPE[Enemy.typeId[target]]?.armor ?? 0;
+      Health.current[target] -= Projectile.damage[proj] * (1 - armor);
 
       if ((Projectile.special[proj] & SPECIAL.Slow) !== 0 && hasComponent(world, Status, target)) {
         // Slow magnitude is read by PathFollowSystem (SLOW_REDUCTION); here we

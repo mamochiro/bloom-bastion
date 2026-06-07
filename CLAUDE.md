@@ -84,13 +84,14 @@ bloom-bastion/
 
 ## 🎯 Current Status
 
-**M1 — Core Loop** essentially complete — the game is fully playable + replayable
-(place towers → fight waves → win/lose → replay). `bun run check` green (Vitest
-82/82), ~233KB gz (<400KB budget). Pipeline is 9/10 systems real (only Animation,
-slot 8, is a stub).
+**M1 — Core Loop** complete + playable through **waves 1–3** (place towers → fight
+3 advancing waves of Grubs then an armored Snail → win/lose → replay). Real
+data-driven wave system (ADR-0003), wave-clear economy, armor, native-color sprite
+art. `bun run check` green (Vitest 94/94), ~233.5KB gz (<400KB budget). Pipeline is
+9/10 systems real (only Animation, slot 8, is a stub).
 
-**Next up:** real **wave system** (waves 1–3) — blocked on the SPEC §6.3 per-wave
-count/interval gap (needs an ADR); currently one scaffold wave.
+**Next up:** waves 4–20 + bosses (same schema) · difficulty multipliers (§6.5) ·
+enemy-palette token ADR (design-dev rec) · death juice · tiles board layer.
 
 📋 **Full milestone tracker + append-only decision log live in `docs/PROGRESS.md`**
 (kept out of here so this file stays lean — locked rules only). See SPEC §13 for

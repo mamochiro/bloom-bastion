@@ -32,7 +32,9 @@ export function placeTower(world: World, typeId: number, gridX: number, gridY: n
   // RenderSystem keys textures off the sprite registry id (config/sprites.ts),
   // sourced from this tower's atlas key — Blossom → "tower-blossom-l1" → 1.
   Renderable.spriteId[eid] = spriteId(cfg.sprite);
-  Renderable.tint[eid] = cfg.tint;
+  // tint is FX-ONLY (locked): 0 → native SVG colours; non-zero is a transient
+  // FX multiply (hit-flash / status). Base = 0.
+  Renderable.tint[eid] = 0;
 
   addComponent(world, Tower, eid);
   Tower.typeId[eid] = typeId;

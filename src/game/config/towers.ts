@@ -14,7 +14,6 @@
  *  - `cost`     — gold to place (SPEC §6.1).
  */
 import type { SpriteKey } from "./sprites";
-import { TINT, type Tint } from "./tokens";
 
 /** Slow status applied on hit (SPEC §6.1 Blossom special). */
 export interface SlowEffect {
@@ -37,10 +36,8 @@ export interface TowerConfig {
   readonly cooldown: number;
   /** Placement cost in gold (SPEC §6.1). */
   readonly cost: number;
-  /** Atlas sprite key → `Renderable.spriteId`. */
+  /** Atlas sprite key → `Renderable.spriteId` (native SVG colours; tint stays 0). */
   readonly sprite: SpriteKey;
-  /** Packed design-token tint → `Renderable.tint`. */
-  readonly tint: Tint;
   /** On-hit slow (SPEC §6.1 Blossom special). */
   readonly slow?: SlowEffect;
 }
@@ -57,7 +54,6 @@ const BLOSSOM: TowerConfig = {
   cooldown: 1.2,
   cost: 50,
   sprite: "tower-blossom-l1",
-  tint: TINT.blossomMid,
   slow: { speedReduction: 0.4, durationS: 2 },
 };
 

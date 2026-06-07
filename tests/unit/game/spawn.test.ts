@@ -1,54 +1,47 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { Enemy, Pathfinder, Position, enemyQuery, world } from "../../../src/engine/ecs/world";
 import { EnemyType } from "../../../src/game/config/enemies";
+import type { Wave } from "../../../src/game/config/waves";
 import { SPAWN } from "../../../src/game/map/coords";
-import { type WaveSpec, createSpawnSystem } from "../../../src/game/systems/spawn";
+import { createSpawnSystem } from "../../../src/game/systems/spawn";
 import { resetGameWorld } from "./_reset";
 
-/** Drive a system for `seconds` total in fixed `step`-second ticks. */
-function simulate(
-  system: ReturnType<typeof createSpawnSystem>,
-  seconds: number,
-  step = 1 / 60,
-): void {
-  for (let t = 0; t < seconds; t += step) {
-    system(world, step);
-  }
+const STEP = 1 / 60;
+
+/** Drive a spawn system for `seconds` total in fixed `step`-second ticks. */
+function simulate(sys: (w: typeof world, dt: number) => void, seconds: number, step = STEP): void {
+  for (let t = 0; t < seconds; t += step) sys(world, step);
 }
 
-const WAVE: WaveSpec = {
-  enemyType: EnemyType.Grub,
-  count: 5,
-  intervalS: 0.75,
-  at: SPAWN,
-};
+const GRUB_WAVE: readonly Wave[] = [
+  { groups: [{ enemy: EnemyType.Grub, count: 5, intervalS: 0.75, startDelayS: 0 }] },
+];
 
-describe("SpawnSystem", () => {
+describe("SpawnSystem (wave-driven scheduling)", () => {
   beforeEach(() => resetGameWorld(world));
 
-  it("spawns exactly `count` enemies over the wave duration", () => {
-    const system = createSpawnSystem(WAVE);
-    simulate(system, WAVE.count * WAVE.intervalS + 1);
-    expect(enemyQuery(world).length).toBe(WAVE.count);
+  it("spawns exactly the group count over the wave", () => {
+    const sys = createSpawnSystem(GRUB_WAVE);
+    simulate(sys, 5 * 0.75 + 1);
+    expect(enemyQuery(world).length).toBe(5);
   });
 
-  it("does not over-spawn once the wave is exhausted", () => {
-    const system = createSpawnSystem(WAVE);
-    simulate(system, 100); // run far longer than the wave
-    expect(enemyQuery(world).length).toBe(WAVE.count);
+  it("does not over-spawn once the wave is fully emitted", () => {
+    const sys = createSpawnSystem(GRUB_WAVE);
+    simulate(sys, 100);
+    expect(enemyQuery(world).length).toBe(5);
   });
 
-  it("paces spawns by the interval (only 1 enemy before the second beat)", () => {
-    const system = createSpawnSystem(WAVE);
-    simulate(system, WAVE.intervalS - 0.1);
+  it("paces spawns by the interval (only 1 before the second beat)", () => {
+    const sys = createSpawnSystem(GRUB_WAVE);
+    simulate(sys, 0.75 - 0.1);
     expect(enemyQuery(world).length).toBe(1);
   });
 
-  it("spawns enemies at the SPAWN coordinate with enemy + pathfinder components", () => {
-    const system = createSpawnSystem(WAVE);
-    system(world, 0); // single tick → first spawn at t=0
+  it("spawns at SPAWN with enemy + pathfinder components", () => {
+    const sys = createSpawnSystem(GRUB_WAVE);
+    sys(world, 0.001); // first spawn at t≈0
     const eids = enemyQuery(world);
-
     expect(eids.length).toBe(1);
     const eid = eids[0];
     expect(Position.x[eid]).toBe(SPAWN.x);
@@ -57,14 +50,32 @@ describe("SpawnSystem", () => {
     expect(Pathfinder.followFlowField[eid]).toBe(1);
   });
 
-  it("gives each instance its own timer (a fresh system still spawns)", () => {
-    const a = createSpawnSystem(WAVE);
-    simulate(a, 100); // exhaust A
-    expect(enemyQuery(world).length).toBe(WAVE.count);
+  it("honours a group's startDelay (trailing group spawns nothing early)", () => {
+    const delayed: readonly Wave[] = [
+      {
+        groups: [
+          { enemy: EnemyType.Grub, count: 4, intervalS: 0.5, startDelayS: 0 },
+          { enemy: EnemyType.Snail, count: 2, intervalS: 0.5, startDelayS: 2.0 },
+        ],
+      },
+    ];
+    const sys = createSpawnSystem(delayed);
 
-    // A new system has its own timer starting at 0 → spawns on its first tick.
-    const b = createSpawnSystem(WAVE);
-    b(world, 0);
-    expect(enemyQuery(world).length).toBe(WAVE.count + 1);
+    simulate(sys, 1.0); // before the Snail group's 2.0s delay
+    const eids = Array.from(enemyQuery(world));
+    expect(eids.length).toBeGreaterThan(0);
+    expect(eids.every((e) => Enemy.typeId[e] === EnemyType.Grub)).toBe(true); // no Snails yet
+  });
+
+  it("reset() re-arms the wave back to the start", () => {
+    const sys = createSpawnSystem(GRUB_WAVE);
+    simulate(sys, 100); // exhaust the wave
+    expect(enemyQuery(world).length).toBe(5);
+    expect(sys.getCurrentWave()).toBe(1);
+
+    sys.reset();
+    resetGameWorld(world); // clear the spawned enemies too
+    sys(world, 0.001);
+    expect(enemyQuery(world).length).toBe(1); // spawns again from the top
   });
 });

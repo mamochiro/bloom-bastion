@@ -57,7 +57,9 @@ export function spawnEnemy(world: World, typeId: number, x: number, y: number): 
   // RenderSystem keys textures off the sprite registry id (config/sprites.ts),
   // sourced from this enemy's atlas key — grub → "enemy-grub" → 100.
   Renderable.spriteId[eid] = spriteId(cfg.sprite);
-  Renderable.tint[eid] = cfg.tint;
+  // tint is FX-ONLY (locked): 0 → native SVG colours; non-zero → Pixi multiply
+  // for transient hit-flash / status, written later by DamageSystem. Base = 0.
+  Renderable.tint[eid] = 0;
 
   addComponent(world, Enemy, eid);
   Enemy.typeId[eid] = typeId;

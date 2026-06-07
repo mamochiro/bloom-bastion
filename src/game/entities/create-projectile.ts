@@ -9,7 +9,6 @@ import { Position, Projectile, Renderable, type World } from "../../engine/ecs/w
 import { projectilePool } from "../../engine/pool/pools";
 import { SPECIAL } from "../config/combat";
 import { spriteId } from "../config/sprites";
-import { TINT } from "../config/tokens";
 import { Hit } from "../ecs/components";
 
 /**
@@ -41,7 +40,8 @@ export function createProjectile(
   addComponent(world, Renderable, eid);
   // RenderSystem keys textures off the sprite registry id (config/sprites.ts).
   Renderable.spriteId[eid] = spriteId("projectile-petal"); // 200
-  Renderable.tint[eid] = TINT.blossomLight;
+  // tint is FX-ONLY (locked): 0 → native SVG colours. Base = 0.
+  Renderable.tint[eid] = 0;
 
   return eid;
 }

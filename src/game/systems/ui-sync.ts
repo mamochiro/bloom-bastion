@@ -19,23 +19,17 @@ import type { System } from "../../engine/loop";
 import { type GameSnapshot, setSnapshot } from "../../store/game-snapshot";
 import { getPhase } from "../ecs/game-state";
 import { getGold, getLives } from "../ecs/resources";
+import { SpawnSystem } from "./spawn";
 
 /** Minimum seconds between store pushes (≤10Hz). */
 export const PUSH_INTERVAL_S = 0.1;
-
-/**
- * Current wave number. No wave-progression state is exposed yet (single
- * scaffold wave this slice), so this is a constant 1; swap to real wave state
- * when the wave system lands.
- */
-const CURRENT_WAVE = 1;
 
 /** Build the HUD mirror from authoritative ECS / game state. Allocates one object. */
 export function buildSnapshot(world: World): GameSnapshot {
   return {
     gold: getGold(world),
     lives: getLives(world),
-    wave: CURRENT_WAVE,
+    wave: SpawnSystem.getCurrentWave(), // live 1-based wave number
     enemiesAlive: enemyQuery(world).length,
     gameStatus: getPhase(), // authoritative phase (DeathSystem decides win/lose)
   };
