@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <!-- ============================================================
+       Bloom Bastion — runtime SVG symbol sheet.
+       Consumed via the locked DOM convention: <use href="/sprites.svg#KEY" />.
+       Symbol ids == the keys in src/game/config/sprites.ts.
+       Each symbol carries its own viewBox so a host <svg> of any size scales it.
+       Tokens are resolved to hex (sprites are not CSS-var themed at runtime).
+       Animated glow (pulse-glow / bob / petal-fall) is DEFERRED to a juice slice;
+       glow here is baked statically via feGaussianBlur.
+       Source of geometry: design-assets/sprites_towers.jsx, sprites_enemies.jsx,
+       sprites_tiles.jsx + design-assets/screenshots/.
+       ============================================================ -->
+  <defs>
+    <filter id="atlas-bl-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#ff6fa5" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="atlas-proj-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="b"/>
+      <feFlood flood-color="#ff6fa5" flood-opacity="0.95"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- 🌸 Blossom tower, L1 — grounded at viewBox bottom (0 0 120 150). -->
+  <symbol id="tower-blossom-l1" viewBox="0 0 120 150">
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#c43d77"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#ff6fa5"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#c43d77" opacity="0.7"/>
+    <g filter="url(#atlas-bl-glow)">
+      <rect x="56" y="92" width="8" height="34" rx="4" fill="#c43d77"/>
+      <g transform="rotate(0 60 51.86)"><ellipse cx="60" cy="51.86" rx="7.02" ry="9.36" fill="#ff6fa5"/><ellipse cx="60" cy="49.52" rx="3.51" ry="4.68" fill="#ffd6e8" opacity="0.7"/></g>
+      <g transform="rotate(72 69.64 58.87)"><ellipse cx="69.64" cy="58.87" rx="7.02" ry="9.36" fill="#ff6fa5"/><ellipse cx="69.64" cy="56.53" rx="3.51" ry="4.68" fill="#ffd6e8" opacity="0.7"/></g>
+      <g transform="rotate(144 65.96 70.2)"><ellipse cx="65.96" cy="70.2" rx="7.02" ry="9.36" fill="#ff6fa5"/><ellipse cx="65.96" cy="67.86" rx="3.51" ry="4.68" fill="#ffd6e8" opacity="0.7"/></g>
+      <g transform="rotate(216 54.04 70.2)"><ellipse cx="54.04" cy="70.2" rx="7.02" ry="9.36" fill="#ff6fa5"/><ellipse cx="54.04" cy="67.86" rx="3.51" ry="4.68" fill="#ffd6e8" opacity="0.7"/></g>
+      <g transform="rotate(288 50.36 58.87)"><ellipse cx="50.36" cy="58.87" rx="7.02" ry="9.36" fill="#ff6fa5"/><ellipse cx="50.36" cy="56.53" rx="3.51" ry="4.68" fill="#ffd6e8" opacity="0.7"/></g>
+      <circle cx="60" cy="62" r="12.6" fill="#ffd700" opacity="0.18"/>
+      <circle cx="60" cy="62" r="6" fill="#fff"/>
+      <circle cx="60" cy="62" r="6" fill="#ffd700" opacity="0.55"/>
+      <circle cx="58.2" cy="60.2" r="1.92" fill="#fff" opacity="0.9"/>
+    </g>
+  </symbol>
+
+  <!-- 🐛 Grub enemy (0 0 100 100). -->
+  <symbol id="enemy-grub" viewBox="0 0 100 100">
+    <ellipse cx="50" cy="86" rx="26" ry="6" fill="#000" opacity="0.25"/>
+    <circle cx="66" cy="70" r="10" fill="#9cf28a"/>
+    <circle cx="51" cy="66" r="11.5" fill="#7be86b"/>
+    <circle cx="36" cy="70" r="13" fill="#9cf28a"/>
+    <circle cx="36" cy="70" r="11.5" fill="#caffb8" opacity="0.5"/>
+    <circle cx="32" cy="67" r="2.6" fill="#1a0f2e"/>
+    <circle cx="40" cy="67" r="2.6" fill="#1a0f2e"/>
+    <circle cx="31.2" cy="66.2" r="0.9" fill="#fff"/>
+    <circle cx="39.2" cy="66.2" r="0.9" fill="#fff"/>
+    <path d="M30 74 Q36 78 42 74" stroke="#1a0f2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <line x1="32" y1="60" x2="29" y2="53" stroke="#5bbf4f" stroke-width="1.6" stroke-linecap="round"/>
+    <line x1="40" y1="60" x2="43" y2="53" stroke="#5bbf4f" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="29" cy="52" r="1.8" fill="#ff6fa5"/>
+    <circle cx="43" cy="52" r="1.8" fill="#ff6fa5"/>
+  </symbol>
+
+  <!-- ✶ Blossom projectile — homing petal (0 0 24 24, centered). -->
+  <symbol id="projectile-petal" viewBox="0 0 24 24">
+    <g filter="url(#atlas-proj-glow)">
+      <ellipse cx="12" cy="12" rx="5" ry="7.5" fill="#ff6fa5"/>
+      <ellipse cx="12" cy="10" rx="2.4" ry="3.6" fill="#ffd6e8" opacity="0.85"/>
+      <circle cx="12" cy="12" r="2" fill="#fff" opacity="0.9"/>
+    </g>
+  </symbol>
+
+  <!-- Grass tile — top-down (0 0 64 64). -->
+  <symbol id="tile-grass" viewBox="0 0 64 64">
+    <rect width="64" height="64" fill="#5fbf52"/>
+    <rect width="64" height="64" fill="none" stroke="#4ea846" stroke-width="1" opacity="0.5"/>
+    <path d="M16 24 q2 -6 4 0" stroke="#3f8a38" stroke-width="1.4" fill="none" opacity="0.7"/>
+    <path d="M40 18 q2 -6 4 0" stroke="#3f8a38" stroke-width="1.4" fill="none" opacity="0.7"/>
+    <path d="M28 46 q2 -6 4 0" stroke="#3f8a38" stroke-width="1.4" fill="none" opacity="0.7"/>
+    <path d="M48 44 q2 -6 4 0" stroke="#3f8a38" stroke-width="1.4" fill="none" opacity="0.7"/>
+    <circle cx="22" cy="34" r="1.6" fill="#7fe070" opacity="0.8"/>
+    <circle cx="44" cy="30" r="1.6" fill="#7fe070" opacity="0.8"/>
+    <circle cx="34" cy="52" r="1.4" fill="#7fe070" opacity="0.8"/>
+  </symbol>
+
+  <!-- Path (dirt) tile — top-down (0 0 64 64). -->
+  <symbol id="tile-path" viewBox="0 0 64 64">
+    <rect width="64" height="64" fill="#cba978"/>
+    <rect x="0.5" y="0.5" width="63" height="63" fill="none" stroke="#9c7c4f" stroke-width="3"/>
+    <ellipse cx="22" cy="26" rx="3.5" ry="2" fill="#b89863"/>
+    <ellipse cx="42" cy="38" rx="3" ry="1.8" fill="#b89863"/>
+    <ellipse cx="34" cy="18" rx="2" ry="1.2" fill="#dcc093"/>
+    <circle cx="28" cy="46" r="1.4" fill="#8a6c43"/>
+    <circle cx="48" cy="22" r="1.2" fill="#8a6c43"/>
+  </symbol>
+</svg>

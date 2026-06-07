@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Bloom Bastion — Grub enemy. Source: design-assets/sprites_enemies.jsx EnemyGrub().
+       Greens are literal in the source (#9cf28a / #7be86b / #caffb8 / #5bbf4f);
+       antenna tips use blossom-mid #ff6fa5; face navy #1a0f2e (bg-deep).
+       walk-waddle CSS keyframe DEFERRED (juice slice). -->
+  <ellipse cx="50" cy="86" rx="26" ry="6" fill="#000" opacity="0.25"/>
+  <g>
+    <!-- body segments (back to front) -->
+    <circle cx="66" cy="70" r="10" fill="#9cf28a"/>
+    <circle cx="51" cy="66" r="11.5" fill="#7be86b"/>
+    <circle cx="36" cy="70" r="13" fill="#9cf28a"/>
+    <circle cx="36" cy="70" r="11.5" fill="#caffb8" opacity="0.5"/>
+    <!-- face -->
+    <circle cx="32" cy="67" r="2.6" fill="#1a0f2e"/>
+    <circle cx="40" cy="67" r="2.6" fill="#1a0f2e"/>
+    <circle cx="31.2" cy="66.2" r="0.9" fill="#fff"/>
+    <circle cx="39.2" cy="66.2" r="0.9" fill="#fff"/>
+    <path d="M30 74 Q36 78 42 74" stroke="#1a0f2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <!-- antennae -->
+    <line x1="32" y1="60" x2="29" y2="53" stroke="#5bbf4f" stroke-width="1.6" stroke-linecap="round"/>
+    <line x1="40" y1="60" x2="43" y2="53" stroke="#5bbf4f" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="29" cy="52" r="1.8" fill="#ff6fa5"/>
+    <circle cx="43" cy="52" r="1.8" fill="#ff6fa5"/>
+  </g>
+</svg>

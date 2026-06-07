@@ -1,0 +1,76 @@
+import { create } from "zustand";
+
+/**
+ * Game → React snapshot contract (SPEC §4.1, architecture rule #2).
+ *
+ * This is a SNAPSHOT-ONLY mirror of authoritative ECS state — never game logic.
+ * Game state lives in the ECS world (locked decision); React reads a throttled
+ * (<=10Hz) snapshot from here. gameplay's UISyncSystem (slot 10) calls
+ * {@link setSnapshot} imperatively from the loop; HUD components read it
+ * reactively via the selector hooks below so each field only re-renders its own
+ * slice.
+ *
+ * Both sides MUST agree on this exact shape. If the field set changes, change it
+ * here and in the UISyncSystem writer together.
+ */
+export interface GameSnapshot {
+  /** Run currency (SPEC §6.5). */
+  gold: number;
+  /** Bastion HP — reaching 0 ends the run. */
+  lives: number;
+  /** Current wave number (1-based). */
+  wave: number;
+  /** Enemies currently alive on the battlefield. */
+  enemiesAlive: number;
+  /**
+   * Run phase: 'playing' during a run, 'lost' when the bastion falls
+   * (lives <= 0), 'won' when every wave is cleared. gameplay's UISyncSystem
+   * pushes the terminal states.
+   */
+  gameStatus: "playing" | "won" | "lost";
+}
+
+/**
+ * Defaults = SPEC §6.5 Normal ("Bloom") difficulty start: 150 gold / 20 lives,
+ * wave 1, no enemies yet, playing. These render before the first UISync tick.
+ */
+export const DEFAULT_SNAPSHOT: GameSnapshot = {
+  gold: 150,
+  lives: 20,
+  wave: 1,
+  enemiesAlive: 0,
+  gameStatus: "playing",
+};
+
+/** Internal Zustand store. Holds ONLY a GameSnapshot — no actions, no logic. */
+const useSnapshotStore = create<GameSnapshot>()(() => ({ ...DEFAULT_SNAPSHOT }));
+
+/**
+ * Imperative setter for the game loop. NOT a hook — call from gameplay's
+ * UISyncSystem at <=10Hz. Replaces the whole snapshot (full object in, so the
+ * throttling/diffing is the caller's concern, per the contract).
+ */
+export const setSnapshot = (snapshot: GameSnapshot): void => {
+  useSnapshotStore.setState(snapshot, true);
+};
+
+/** Non-reactive read (tests, the loop). For components use {@link useGameSnapshot}. */
+export const getSnapshot = (): GameSnapshot => useSnapshotStore.getState();
+
+/**
+ * Selector-based React hook. Components subscribe to a slice and re-render only
+ * when that slice changes.
+ *
+ * @example const gold = useGameSnapshot((s) => s.gold);
+ */
+export function useGameSnapshot<T>(selector: (s: GameSnapshot) => T): T {
+  return useSnapshotStore(selector);
+}
+
+/** Convenience slice selectors — each re-renders only on its own field. */
+export const useGold = (): number => useSnapshotStore((s) => s.gold);
+export const useLives = (): number => useSnapshotStore((s) => s.lives);
+export const useWave = (): number => useSnapshotStore((s) => s.wave);
+export const useEnemiesAlive = (): number => useSnapshotStore((s) => s.enemiesAlive);
+export const useGameStatus = (): GameSnapshot["gameStatus"] =>
+  useSnapshotStore((s) => s.gameStatus);

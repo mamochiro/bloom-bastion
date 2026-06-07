@@ -65,6 +65,30 @@
   --font-body: 'Nunito', system-ui, sans-serif;
   --font-num: 'Baloo 2', 'Nunito', sans-serif;
 
+  /* ---------- TYPE SCALE (px ramp, extracted from the design system)
+     Source: design-assets/styles.css + tabs_core.jsx TabType "Type scale"
+     (Display clamp(34,60) / Heading clamp(26,38) / Subhead 22 / Lead 17 /
+     Body 15 / Caption 12) + the HUD/TowerPicker raw sizes in the fix_hud
+     screenshots. Components should reference these, never raw px.
+       --fs-2xs  9px   micro HUD cost / fine print  (was 9.5)
+       --fs-xs   11px  pill captions, secondary nums (was 11)
+       --fs-sm   12px  caption / cost / tags         (was 12)
+       --fs-md   13px  labels, dense HUD value       (was 13)
+       --fs-base 15px  body copy                     (was 14/15)
+       --fs-lg   17px  lead / status value           (was 16/17)
+       --fs-xl   22px  subhead, big HUD number        (was 22/24)
+       --fs-2xl  30px  combo / hero counter           (was 28/30)
+       --fs-3xl  clamp(34px, 6vw, 44px)  screen title (was 42/44) */
+  --fs-2xs:  9px;
+  --fs-xs:   11px;
+  --fs-sm:   12px;
+  --fs-md:   13px;
+  --fs-base: 15px;
+  --fs-lg:   17px;
+  --fs-xl:   22px;
+  --fs-2xl:  30px;
+  --fs-3xl:  clamp(34px, 6vw, 44px);
+
   /* ---------- RADII ---------- */
   --r-sm: 8px;
   --r-md: 14px;
