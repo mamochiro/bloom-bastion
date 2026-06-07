@@ -1,7 +1,7 @@
 # ADR-0003: Wave System Schema + Concrete Waves 1–3
 
 **Date:** 2026-06-07
-**Status:** Proposed
+**Status:** Accepted
 
 ## Context
 

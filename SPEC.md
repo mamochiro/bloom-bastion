@@ -373,6 +373,38 @@ Wave 16-19: Hardcore mix, multiple enemy types simultaneously
 Wave 20:    NEON DRAGON (final boss, 2 phases)
 ```
 
+#### Wave Data Schema (ADR-0003)
+
+Waves are data, authored in `src/game/config/waves.ts`. A wave is an ordered list
+of **spawn groups**; groups sequence/overlap via `startDelayS` from wave start.
+
+```ts
+interface SpawnGroup {
+  enemy: EnemyType;     // §6.2 id
+  count: number;        // enemies in this group
+  intervalS: number;    // seconds between spawns within the group
+  startDelayS: number;  // seconds from wave start before this group begins
+}
+interface Wave { groups: SpawnGroup[]; }   // clear bonus derived: 25 + 5*waveNumber (§6.5)
+```
+
+- **Wave complete** = all groups fully spawned AND no enemies alive.
+- **Inter-wave:** `INTER_WAVE_DELAY_S = 3` prep gap, then auto-advance. (Optional
+  future: a "Next Wave" button to call the next wave early — see §6.4 NEXT.)
+- **On wave clear**, apply §6.5 economy: `+25 + 5*wave` clear bonus, `+5%` interest
+  (cap +50g). **Win** (§6.6) = last defined wave cleared.
+
+#### Concrete Waves 1–3 (Normal; HP/speed ×1.0 per §6.5)
+
+| Wave | Spawn groups | Total | Clear bonus | Intent |
+|------|--------------|-------|-------------|--------|
+| **1** | Grub ×8 @1.0s (delay 0) | 8 Grub | 30g | Pure intro — ~1 Blossom can solo it |
+| **2** | Grub ×12 @0.8s (delay 0) | 12 Grub | 35g | Density bump → second tower |
+| **3** | Grub ×10 @0.7s (delay 0) + Snail ×3 @1.5s (delay 2.0s) | 10 Grub, 3 Snail | 40g | Introduce light Snails (armor) per the roadmap |
+
+Waves 4–20 use the same schema, authored incrementally; boss waves (Candy King
+5/10/15, Neon Dragon 20) are a single-count group of the boss enemy.
+
 #### Endless Mode (post wave 20)
 - Difficulty scales: HP × 1.15ⁿ, count × 1.05ⁿ
 - Random enemy composition
