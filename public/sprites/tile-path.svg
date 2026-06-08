@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Bloom Bastion — Path (dirt, enemy lane, non-buildable) tile, TOP-DOWN to match
+       design-assets/screenshots/proto_game.png. Dirt fill with a darker inset border,
+       exactly as the proto's tan lane reads. Tones from the iso TilePath source:
+       #cba978 top, #9c7c4f / #8a6c43 sides → reused as fill + border here. -->
+  <rect width="64" height="64" fill="#cba978"/>
+  <rect x="0.5" y="0.5" width="63" height="63" fill="none" stroke="#9c7c4f" stroke-width="3"/>
+  <!-- pebble speckle -->
+  <ellipse cx="22" cy="26" rx="3.5" ry="2" fill="#b89863"/>
+  <ellipse cx="42" cy="38" rx="3" ry="1.8" fill="#b89863"/>
+  <ellipse cx="34" cy="18" rx="2" ry="1.2" fill="#dcc093"/>
+  <circle cx="28" cy="46" r="1.4" fill="#8a6c43"/>
+  <circle cx="48" cy="22" r="1.2" fill="#8a6c43"/>
+</svg>

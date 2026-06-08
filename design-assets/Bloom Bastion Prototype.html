@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bloom Bastion — Playable Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { display: grid; place-items: center; min-height: 100vh; padding: 20px; }
+  #game { width: 100%; max-width: 820px; }
+  .proto-root {
+    background: linear-gradient(180deg, var(--bg-panel), var(--bg-stage));
+    border: 1px solid var(--bg-line); border-radius: var(--r-xl);
+    box-shadow: var(--shadow-panel); overflow: hidden;
+  }
+  .topbar-game {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--bg-line);
+    background: linear-gradient(180deg, rgba(14,8,32,.6), transparent);
+  }
+  .chip { display: flex; align-items: center; gap: 6px; background: rgba(20,12,38,.66); border: 1px solid var(--bg-line); border-radius: 99px; padding: 5px 12px; }
+  .combo { font-family: var(--font-display); font-weight: 800; font-size: 15px; text-shadow: 0 0 12px var(--gold); animation: comboPop .3s ease; }
+  @keyframes comboPop { from { transform: scale(1.4); } to { transform: scale(1); } }
+
+  .field-wrap { padding: 12px; transition: transform .04s linear; }
+  .field {
+    position: relative; margin: 0 auto; border-radius: var(--r-lg);
+    overflow: hidden; cursor: crosshair;
+    box-shadow: inset 0 0 0 2px var(--bg-line), 0 10px 30px -10px #000;
+    max-width: 100%; aspect-ratio: 780 / 500;
+  }
+  /* scale the fixed-size field down on small screens */
+  @media (max-width: 820px) { .field { width: 100% !important; height: auto !important; } }
+
+  .dock { display: flex; align-items: stretch; gap: 12px; padding: 12px 16px 16px; border-top: 1px solid var(--bg-line); }
+  .picker { display: flex; gap: 8px; overflow-x: auto; flex: 1; padding-bottom: 2px; }
+  .pick {
+    flex: 0 0 auto; width: 66px; border-radius: 14px; padding: 6px 4px 4px;
+    border: 2px solid var(--bg-line); cursor: pointer; text-align: center;
+    transition: transform .12s, box-shadow .15s, opacity .15s; font-family: inherit;
+  }
+  .pick-art { height: 44px; display: grid; place-items: end center; }
+  .pick-art > * { width: 78%; }
+  .next-btn {
+    flex: 0 0 auto; align-self: stretch; min-width: 128px; min-height: 48px; padding: 0 22px; white-space: nowrap;
+    font-family: var(--font-display); font-weight: 800; font-size: 15px; color: #06301c;
+    background: linear-gradient(180deg, var(--success), #2aa866); border: 0; border-radius: 16px;
+    cursor: pointer; box-shadow: 0 5px 0 #1c7a48, 0 0 16px -2px var(--success);
+    transition: transform .1s;
+  }
+  .next-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1c7a48; }
+
+  .end-ov { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(8,5,18,.72); backdrop-filter: blur(3px); z-index: 2000; }
+
+  @keyframes floatup { 0% { transform: translate(-50%,-50%); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(-50%,-160%); opacity: 0; } }
+
+  .proto-caption { text-align: center; color: var(--text-dim); font-size: 13px; margin-top: 14px; font-family: var(--font-body); }
+  .proto-caption b { color: var(--text-soft); }
+  .proto-title { text-align:center; margin-bottom:14px; }
+  .proto-title .t { font-family: var(--font-display); font-weight: 800; font-size: 26px; }
+  .proto-title .t .a { color: var(--blossom-mid); } .proto-title .t .b { color: var(--bubble-mid); }
+  .proto-title .s { color: var(--text-dim); font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+
+  /* cute volume slider for the settings panel */
+  .bb-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 99px; border: 1px solid var(--bg-line); outline: none; cursor: pointer; }
+  .bb-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff6ff; box-shadow: 0 1px 4px rgba(0,0,0,.55); cursor: pointer; }
+  .bb-range::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: #fff6ff; box-shadow: 0 1px 4px rgba(0,0,0,.55); cursor: pointer; }
+
+  /* damage feedback */
+  @keyframes dmgRing { from { transform: translate(-50%,-50%) scale(.4); opacity: .85; } to { transform: translate(-50%,-50%) scale(2.7); opacity: 0; } }
+  @keyframes dmgVignette { 0% { opacity: 0; } 14% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes chipHurt { 0%,100% { transform: translateX(0); } 18% { transform: translateX(-4px) scale(1.08); } 38% { transform: translateX(4px); } 58% { transform: translateX(-3px); } 78% { transform: translateX(3px); } }
+  @keyframes ringPop { from { transform: translate(-50%,-50%) scale(.3); opacity: .9; } to { transform: translate(-50%,-50%) scale(2.1); opacity: 0; } }
+  @keyframes bannerSweep { 0% { opacity: 0; transform: translateX(-70px); } 14% { opacity: 1; transform: translateX(0); } 80% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(46px); } }
+  @keyframes achPop { from { opacity: 0; transform: translateY(-14px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes ambientFall { 0% { transform: translateY(-24px) translateX(0) rotate(0); opacity: 0; } 10% { opacity: .75; } 90% { opacity: .75; } 100% { transform: translateY(520px) translateX(var(--dx,30px)) rotate(360deg); opacity: 0; } }
+
+  /* touch / mobile */
+  button, .field, .pick, .next-btn { touch-action: manipulation; }
+  .proto-root { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+</style>
+</head>
+<body>
+<div id="game-shell" style="width:100%;max-width:820px;">
+  <div class="proto-title">
+    <div class="t"><span class="a">Bloom</span> <span class="b">Bastion</span></div>
+    <div class="s">Playable prototype · menu → difficulty → loadout → defend</div>
+  </div>
+  <div id="game"></div>
+  <div class="proto-caption">Pick a tower below · click a <b>grass</b> tile to preview it · tap <b>✓</b> to confirm or <b>✕</b> to cancel (click another tile to move it) · <b>click a placed tower</b> to upgrade or sell · hit <b>START WAVE</b>. Don't let enemies reach the <b>❤️</b>.</div>
+</div>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="20" fill="#1a0f2e"/>
+    <g transform="translate(50 48)">
+      <circle r="22" fill="rgba(255,111,165,.25)"/>
+      <g>
+        <ellipse cx="0" cy="-13" rx="6.5" ry="9" fill="#ff6fa5"/>
+        <ellipse cx="12" cy="-4" rx="6.5" ry="9" fill="#ffd6e8" transform="rotate(72 12 -4)"/>
+        <ellipse cx="8" cy="11" rx="6.5" ry="9" fill="#ff6fa5" transform="rotate(144 8 11)"/>
+        <ellipse cx="-8" cy="11" rx="6.5" ry="9" fill="#ffd6e8" transform="rotate(216 -8 11)"/>
+        <ellipse cx="-12" cy="-4" rx="6.5" ry="9" fill="#ff6fa5" transform="rotate(288 -12 -4)"/>
+        <circle r="6" fill="#ffd700"/>
+      </g>
+    </g>
+  </svg>
+</template>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="proto_audio.js"></script>
+
+<script type="text/babel" src="sprites_towers.jsx"></script>
+<script type="text/babel" src="sprites_enemies.jsx"></script>
+<script type="text/babel" src="sprites_tiles.jsx"></script>
+<script type="text/babel" src="proto_overlays.jsx"></script>
+<script type="text/babel" src="proto_shop.jsx"></script>
+<script type="text/babel" src="proto_meta.jsx"></script>
+<script type="text/babel" src="proto_game.jsx"></script>
+</body>
+</html>

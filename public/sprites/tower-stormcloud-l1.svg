@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+  <!-- Bloom Bastion — Stormcloud tower, level 1. Source: design-assets/sprites_towers.jsx TowerStorm({level:1}).
+       Tokens resolved to hex (sprites are not CSS-var themed at runtime):
+       storm-light #d2ecff, storm-mid #5db8ff, storm-dark #2a6fae, gold #ffd700, bolt-stroke #fff7d6.
+       L1 = pedestal + single main bolt + main cloud (s=0.85) + white core. Side clouds (L2+),
+       extra bolts (L2/L3) and rain dots (L3) are omitted. Idle bob / flicker / pulse-glow
+       CSS keyframes from the source are DEFERRED (juice slice). -->
+  <defs>
+    <!-- Static gold bolt glow (replaces drop-shadow(0 0 8px gold)). -->
+    <filter id="st1-bolt" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/>
+      <feFlood flood-color="#ffd700" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Static cloud glow (replaces drop-shadow(0 0 7px storm-mid)). -->
+    <filter id="st1-cloud" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#5db8ff" flood-opacity="0.85"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- hex pedestal -->
+  <g>
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#2a6fae"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#5db8ff"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#2a6fae" opacity="0.7"/>
+  </g>
+
+  <!-- lightning bolt -->
+  <g filter="url(#st1-bolt)">
+    <path d="M58 78 L50 102 L60 100 L52 122 L74 92 L63 94 L70 78 Z" fill="#ffd700" stroke="#fff7d6" stroke-width="1.2"/>
+  </g>
+
+  <!-- main storm cloud (cx 60, cy 56, scale 0.85) -->
+  <g filter="url(#st1-cloud)">
+    <circle cx="48.1" cy="58" r="9.35" fill="#d2ecff"/>
+    <circle cx="71.9" cy="58" r="9.35" fill="#d2ecff"/>
+    <circle cx="56.6" cy="50.05" r="11.05" fill="#d2ecff"/>
+    <circle cx="65.95" cy="51.75" r="9.35" fill="#d2ecff"/>
+    <rect x="39.6" y="56" width="40.8" height="9.35" rx="5.1" fill="#d2ecff"/>
+  </g>
+
+  <!-- glowing core orb (white) -->
+  <circle cx="60" cy="58" r="10.5" fill="#fff" opacity="0.18"/>
+  <circle cx="60" cy="58" r="5" fill="#fff"/>
+  <circle cx="60" cy="58" r="5" fill="#fff" opacity="0.55"/>
+  <circle cx="58.5" cy="56.5" r="1.6" fill="#fff" opacity="0.9"/>
+</svg>

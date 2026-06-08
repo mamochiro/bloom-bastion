@@ -82,28 +82,27 @@ bloom-bastion/
 └── docs/decisions/       ← ADRs
 ```
 
-## 🎯 Current Milestone
+## 🎯 Current Status
 
-**M0 — Foundation** (in progress)
+**M1 — Core Loop** complete + playable end-to-end: **start screen** → pick
+difficulty (Casual/Normal/Hardcore, §6.5 — scales economy + enemy HP/speed) →
+place towers (**Blossom** slow 50g / **Stormcloud** chain-lightning 100g) → fight
+**waves 1–3** (Grubs → armored Snail) → win/lose → replay. Data-driven waves
+(ADR-0003), wave-clear economy, armor, native-color sprite art. `bun run check`
+green (Vitest 130/130), ~235KB gz. Pipeline 9/10 systems real (only Animation,
+slot 8, is a stub). Content: start screen + 3 difficulties, 2 towers, 2 enemies, 3 waves.
 
-Tasks remaining:
-- [ ] Scaffold with Bun + Vite 6 + TS + Pixi + bitECS (`bun create vite`)
-- [ ] Integrate design tokens
-- [ ] Smoke test: render canvas with 1 tower + 1 enemy walking path
-- [ ] Set up Vitest + Playwright
-- [ ] Deploy preview to Vercel
+Active skills (§6.4): **Meteor** live (tap-to-aim 200 AoE); Freeze/Gold Rush built
+but locked until waves 5/10. `bun run check` green (Vitest 156/156), ~236.5KB gz.
 
-See SPEC §13 for full roadmap.
+**Next up:** towers 3–6 + L2/L3 upgrades (same pipeline) · waves 4–20 + bosses
+(unlocks Freeze/Gold Rush) · enemy-palette token ADR · skill/death VFX (juice) ·
+tiles board layer. **SPEC clarifications flagged:** Stormcloud chain radius (2.5
+tiles); Meteor damage raw-vs-armor (§6.4 "200 DMG", applied armor-adjusted).
 
-## 📝 Recent Decisions
-
-(Append-only log. Newest first.)
-
-- **2026-06-05** — Added 6 project subagents in `.claude/agents/` (engine-dev, gameplay-dev, ui-dev, perf-guardian, test-engineer, spec-reviewer)
-- **2026-06-05** — Stack modernized: Bun (runtime/PM) + Vite 6 + React 19 + Biome; Bun runs Vite, not replaces it
-- **2026-06-05** — Design phase complete, assets in `design-assets/`
-- **2026-06-05** — Locked tech stack (Vite/Pixi/bitECS/Rive/React-UI-only)
-- **2026-06-05** — SPEC.md committed as source of truth
+📋 **Full milestone tracker + append-only decision log live in `docs/PROGRESS.md`**
+(kept out of here so this file stays lean — locked rules only). See SPEC §13 for
+the roadmap, `docs/decisions/` for ADRs.
 
 ## 🚦 Working Agreements
 

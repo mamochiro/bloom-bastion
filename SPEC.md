@@ -70,32 +70,37 @@ Reference vibe: *Monument Valley* × *Hades* × *Alto's Odyssey*
 
 ### 2.3 Color System
 
+> **Canonical source:** `design-assets/export/design-tokens.css`, mirrored to `src/ui/styles/tokens.css`. Use the CSS vars — never hardcode hex. (See ADR-0002.) Each tower family is a **3-stop ramp** (`light` / `mid` / `dark`); pick intentionally (mid = body, light = highlight/glow, dark = shadow/trim).
+
 ```css
-/* Background */
---bg-deep: #0F0E2E;       /* deep night violet */
---bg-mid: #1A1B3A;        /* midnight blue */
---bg-warm: #2D1B4E;       /* muted purple */
+/* Backgrounds (deep navy/violet battlefield) */
+--bg-abyss: #0e0820;  --bg-deep: #1a0f2e;  --bg-stage: #241544;
+--bg-panel: #2d1b4e;  --bg-elevated: #3a2563;  --bg-line: #4a2f7a;
 
-/* Tower colors (each glows) */
---tower-blossom: #FFB3D9;     /* pastel pink */
---tower-storm: #B8C5FF;       /* ice blue */
---tower-sugar: #FFE066;       /* butter yellow */
---tower-luna: #C8B3FF;        /* lavender */
---tower-hive: #FFD680;        /* honey gold */
---tower-bubbler: #B3F0FF;     /* mint aqua */
+/* Tower families (light / mid / dark) — each glows */
+--blossom-{light:#ffd6e8, mid:#ff6fa5, dark:#c43d77}   /* cherry pink   */
+--storm-{light:#d2ecff,   mid:#5db8ff, dark:#2a6fae}   /* sky blue      */
+--sugar-{light:#ffd9d2,   mid:#ff7a6b, dark:#d6463a}   /* candy coral   */
+--luna-{light:#e6dcff,    mid:#b388ff, dark:#7a4fd6}   /* lavender      */
+--hive-{light:#ffe9b0,    mid:#ffb74d, dark:#e07b1f}   /* honey amber   */
+--bubble-{light:#c6fff0,  mid:#4fe0c4, dark:#1f9e85}   /* mint aqua     */
 
-/* HUD accents */
---gold: #FFD93D;
---danger: #FF6B9D;
---success: #95E1A3;
---text-primary: #FFFFFF;
---text-secondary: rgba(255,255,255,0.7);
+/* HUD accents + HP ramp + enemy corruption */
+--gold:#ffd700; --danger:#ff4d6d; --success:#44e08a; --xp-blue:#5db8ff;
+--hp-high:#44e08a; --hp-mid:#ffd34d; --hp-low:#ff4d6d;
+--shade-core:#8c4dff; --shade-glow:#c77dff;
+
+/* Text */
+--text-bright:#fff6ff; --text-soft:#cabbe6; --text-dim:#8c7bb0; --text-faint:#5d4d80;
 ```
 
+Also defined in the canonical file: radii (`--r-sm…--r-pill`), 8pt spacing (`--s1…--s8`), shadows (`--shadow-panel/card`), and `--touch: 56px`. Animation keyframes (22) live in `design-assets/export/keyframes.css` → `src/ui/styles/keyframes.css`.
+
 ### 2.4 Typography
-- **Display:** Fredoka / Quicksand (rounded, friendly, characterful)
-- **Body:** Inter / system-ui (clean readable)
-- **Numbers:** JetBrains Mono / Tabular nums (HUD aligned)
+> Canonical: `design-tokens.css` (`--font-display`, `--font-body`, `--font-num`). Loaded via Google Fonts (Baloo 2 + Nunito).
+- **Display & Numbers:** Baloo 2 (rounded, friendly, characterful) → `--font-display`, `--font-num`
+- **Body:** Nunito (clean, readable, great at small sizes) → `--font-body`
+- Fallback chain: `system-ui, sans-serif`
 
 ### 2.5 Animation Principles
 - Idle: subtle bob (2-3px, 1.5s loop) on every tower
@@ -367,6 +372,38 @@ Wave 15:    CANDY KING + Splitters
 Wave 16-19: Hardcore mix, multiple enemy types simultaneously
 Wave 20:    NEON DRAGON (final boss, 2 phases)
 ```
+
+#### Wave Data Schema (ADR-0003)
+
+Waves are data, authored in `src/game/config/waves.ts`. A wave is an ordered list
+of **spawn groups**; groups sequence/overlap via `startDelayS` from wave start.
+
+```ts
+interface SpawnGroup {
+  enemy: EnemyType;     // §6.2 id
+  count: number;        // enemies in this group
+  intervalS: number;    // seconds between spawns within the group
+  startDelayS: number;  // seconds from wave start before this group begins
+}
+interface Wave { groups: SpawnGroup[]; }   // clear bonus derived: 25 + 5*waveNumber (§6.5)
+```
+
+- **Wave complete** = all groups fully spawned AND no enemies alive.
+- **Inter-wave:** `INTER_WAVE_DELAY_S = 3` prep gap, then auto-advance. (Optional
+  future: a "Next Wave" button to call the next wave early — see §6.4 NEXT.)
+- **On wave clear**, apply §6.5 economy: `+25 + 5*wave` clear bonus, `+5%` interest
+  (cap +50g). **Win** (§6.6) = last defined wave cleared.
+
+#### Concrete Waves 1–3 (Normal; HP/speed ×1.0 per §6.5)
+
+| Wave | Spawn groups | Total | Clear bonus | Intent |
+|------|--------------|-------|-------------|--------|
+| **1** | Grub ×8 @1.0s (delay 0) | 8 Grub | 30g | Pure intro — ~1 Blossom can solo it |
+| **2** | Grub ×12 @0.8s (delay 0) | 12 Grub | 35g | Density bump → second tower |
+| **3** | Grub ×10 @0.7s (delay 0) + Snail ×3 @1.5s (delay 2.0s) | 10 Grub, 3 Snail | 40g | Introduce light Snails (armor) per the roadmap |
+
+Waves 4–20 use the same schema, authored incrementally; boss waves (Candy King
+5/10/15, Neon Dragon 20) are a single-count group of the boss enemy.
 
 #### Endless Mode (post wave 20)
 - Difficulty scales: HP × 1.15ⁿ, count × 1.05ⁿ

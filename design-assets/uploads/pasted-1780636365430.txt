@@ -1,0 +1,57 @@
+# Bloom Bastion — Full Spec
+
+## Vision
+Cute pastel + dark battlefield tower defense
+Mobile-first, must scale desktop
+"Cute but deadly" — neon glow on dark canvas
+
+## Tech Stack (locked)
+- Vite + TypeScript strict
+- PixiJS v8 (renderer, WebGPU-ready)
+- bitECS (entity system)
+- Rive (character animation)
+- GSAP (UI tween)
+- Howler.js (audio)
+- React 18 + Zustand (UI overlay only)
+
+## Architecture
+- ECS pattern, data-oriented
+- Flow field pathfinding (not A* per entity)
+- Object pooling for all entities
+- Adaptive quality based on FPS
+- React strictly OUTSIDE canvas
+
+## Performance Targets
+- 60fps on iPhone 11 / Pixel 5
+- < 400KB JS gzipped
+- < 1.5s FCP on 4G
+- 200+ entities at 60fps
+
+## Game Content
+### Towers (6 × 3 levels)
+[ตารางเต็มจาก spec ก่อนหน้า]
+
+### Enemies (8)
+[ตารางเต็ม]
+
+### Waves
+20 + endless mode, 3 difficulties
+
+### Active Skills
+Meteor, Freeze All, Gold Rush
+
+### Economy
+Kill + wave bonus + interest (+5%/wave) + combo
+
+## Mobile Requirements
+- 56px touch targets
+- Drag-to-place with ghost preview
+- Pinch zoom on map only
+- Haptic feedback
+- Safe area insets
+
+## Out of Scope (v1)
+- Multiplayer
+- Backend/leaderboard online
+- Microtransactions
+- Tutorial system (v2)
