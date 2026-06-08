@@ -1,4 +1,25 @@
 import { create } from "zustand";
+// INTERIM SkillType source — reconcile to "../game/config/skills" once gameplay
+// lands the canonical config (store/skills.ts re-exports it after reconcile).
+import type { SkillType } from "./skills";
+
+/**
+ * Per-skill dynamic state mirrored from the ECS (SPEC §6.4). Static identity
+ * (icon/name/aim/unlockWave) comes from the skills config; this is the live
+ * cooldown/lock state gameplay's UISyncSystem pushes.
+ */
+export interface SkillSnapshot {
+  /** Which skill this row is. */
+  type: SkillType;
+  /** Off cooldown AND unlocked → tappable. */
+  ready: boolean;
+  /** Seconds of cooldown left (0 when ready). */
+  cooldownRemaining: number;
+  /** Fraction of cooldown still remaining, 0..1 (0 when ready) — radial fill. */
+  cooldownFraction: number;
+  /** Unlocked at the current wave (SPEC §6.4 unlock waves). */
+  unlocked: boolean;
+}
 
 /**
  * Game → React snapshot contract (SPEC §4.1, architecture rule #2).
@@ -28,6 +49,13 @@ export interface GameSnapshot {
    * cleared. gameplay's UISyncSystem pushes the run/terminal states.
    */
   gameStatus: "menu" | "playing" | "won" | "lost";
+  /**
+   * Skill cooldown/lock state (SPEC §6.4), one row per skill. Static skill
+   * identity lives in the skills config; this carries only the live state.
+   * Empty until gameplay's UISyncSystem first pushes it (the bar falls back to
+   * locked/not-ready defaults from the config meanwhile).
+   */
+  skills: readonly SkillSnapshot[];
 }
 
 /**
@@ -41,6 +69,7 @@ export const DEFAULT_SNAPSHOT: GameSnapshot = {
   wave: 1,
   enemiesAlive: 0,
   gameStatus: "menu",
+  skills: [],
 };
 
 /** Internal Zustand store. Holds ONLY a GameSnapshot — no actions, no logic. */
@@ -75,3 +104,4 @@ export const useWave = (): number => useSnapshotStore((s) => s.wave);
 export const useEnemiesAlive = (): number => useSnapshotStore((s) => s.enemiesAlive);
 export const useGameStatus = (): GameSnapshot["gameStatus"] =>
   useSnapshotStore((s) => s.gameStatus);
+export const useSkills = (): readonly SkillSnapshot[] => useSnapshotStore((s) => s.skills);

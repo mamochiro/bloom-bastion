@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { requestRestart } from "../../store/commands";
 import { useGameStatus, useGold, useLives, useWave } from "../../store/game-snapshot";
+import { SkillBar } from "./SkillBar";
 import { StartScreen } from "./StartScreen";
 import { TowerPicker } from "./TowerPicker";
 
@@ -27,6 +28,7 @@ export function Hud() {
     <>
       <StatusStripView gold={gold} lives={lives} wave={wave} />
       <TowerPicker />
+      {status === "playing" && <SkillBar />}
       {status === "menu" && <StartScreen />}
       {status === "won" && <VictoryView gold={gold} wave={wave} />}
       {status === "lost" && <DefeatView gold={gold} wave={wave} />}

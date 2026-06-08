@@ -15,6 +15,7 @@ import { type World, enemyQuery, projectileQuery, towerQuery } from "../../../sr
 import { DEFAULT_DIFFICULTY, setActiveDifficulty } from "../../../src/game/config/difficulty";
 import { resetPhase } from "../../../src/game/ecs/game-state";
 import { _resetResourcesCache } from "../../../src/game/ecs/resources";
+import { resetSkills } from "../../../src/game/ecs/skills";
 import { releaseEnemy } from "../../../src/game/entities/create-enemy";
 import { releaseProjectile } from "../../../src/game/entities/create-projectile";
 import { releaseTower } from "../../../src/game/entities/create-tower";
@@ -28,4 +29,5 @@ export function resetGameWorld(world: World): void {
   resetPhase(); // back to 'playing' so the pause guard doesn't freeze the next test
   SpawnSystem.reset(); // re-arm the live wave instance (shared singleton)
   setActiveDifficulty(DEFAULT_DIFFICULTY); // back to 'normal' (1.0× mults) for isolation
+  resetSkills(); // cooldowns / buffs / clearedWaves → 0
 }

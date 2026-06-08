@@ -50,6 +50,13 @@ export const PathFollowSystem: System = (world: World, dt: number): World => {
     const eid = ents[n];
     if (Pathfinder.followFlowField[eid] !== 1) continue;
 
+    // Stunned (Freeze All skill, SPEC §6.4) → frozen in place, no movement.
+    if (now < Status.stunnedUntil[eid]) {
+      Velocity.vx[eid] = 0;
+      Velocity.vy[eid] = 0;
+      continue;
+    }
+
     const i = flowIndexAt(Position.x[eid], Position.y[eid]);
     if (i < 0) {
       // Off the field — hold position rather than index out of bounds.

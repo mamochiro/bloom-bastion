@@ -17,8 +17,10 @@
 import { type World, enemyQuery } from "../../engine/ecs/world";
 import type { System } from "../../engine/loop";
 import { type GameSnapshot, setSnapshot } from "../../store/game-snapshot";
+import { SKILL_ORDER } from "../config/skills";
 import { getPhase } from "../ecs/game-state";
 import { getGold, getLives } from "../ecs/resources";
+import { cooldownFraction, cooldownRemaining, isReady, isUnlocked } from "../ecs/skills";
 import { SpawnSystem } from "./spawn";
 
 /** Minimum seconds between store pushes (≤10Hz). */
@@ -32,6 +34,15 @@ export function buildSnapshot(world: World): GameSnapshot {
     wave: SpawnSystem.getCurrentWave(), // live 1-based wave number
     enemiesAlive: enemyQuery(world).length,
     gameStatus: getPhase(), // authoritative phase (DeathSystem decides win/lose)
+    // Per-skill cooldown/lock state (SPEC §6.4), fixed order. ≤10Hz boundary
+    // alloc (the snapshot itself allocates) — not the per-frame hot path.
+    skills: SKILL_ORDER.map((type) => ({
+      type,
+      ready: isReady(type) && isUnlocked(type), // tappable = off cooldown AND unlocked
+      cooldownRemaining: cooldownRemaining(type),
+      cooldownFraction: cooldownFraction(type),
+      unlocked: isUnlocked(type),
+    })),
   };
 }
 

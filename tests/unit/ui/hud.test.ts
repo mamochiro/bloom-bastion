@@ -74,13 +74,20 @@ describe("Hud container — end-game phase gating", () => {
   let container: HTMLDivElement | null = null;
 
   afterEach(() => {
-    setSnapshot({ gold: 150, lives: 20, wave: 1, enemiesAlive: 0, gameStatus: "playing" });
+    setSnapshot({
+      gold: 150,
+      lives: 20,
+      wave: 1,
+      enemiesAlive: 0,
+      gameStatus: "playing",
+      skills: [],
+    });
     container?.remove();
     container = null;
   });
 
   const renderHudWith = async (status: "menu" | "playing" | "won" | "lost", wave: number) => {
-    setSnapshot({ gold: 150, lives: 14, wave, enemiesAlive: 0, gameStatus: status });
+    setSnapshot({ gold: 150, lives: 14, wave, enemiesAlive: 0, gameStatus: status, skills: [] });
     container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
@@ -94,30 +101,34 @@ describe("Hud container — end-game phase gating", () => {
     return html;
   };
 
-  it("renders the start screen on 'menu' (and no end overlays)", async () => {
+  it("renders the start screen on 'menu' (and no skill bar / end overlays)", async () => {
     const html = await renderHudWith("menu", 1);
     expect(html).toContain('role="radiogroup"');
     expect(html).toContain("Bastion");
+    expect(html).not.toContain('aria-label="Skills"');
     expect(html).not.toContain("BASTION FELL");
     expect(html).not.toContain("BLOOM PREVAILS");
   });
 
-  it("renders neither the start screen nor an end overlay while playing", async () => {
+  it("renders the skill bar (not the menu/end overlays) while playing", async () => {
     const html = await renderHudWith("playing", 1);
+    expect(html).toContain('aria-label="Skills"');
     expect(html).not.toContain('role="radiogroup"');
     expect(html).not.toContain("BASTION FELL");
     expect(html).not.toContain("BLOOM PREVAILS");
   });
 
-  it("renders the victory overlay when gameStatus is 'won'", async () => {
+  it("renders the victory overlay (no skill bar) when gameStatus is 'won'", async () => {
     const html = await renderHudWith("won", 20);
     expect(html).toContain("BLOOM PREVAILS");
+    expect(html).not.toContain('aria-label="Skills"');
     expect(html).not.toContain("BASTION FELL");
   });
 
-  it("renders the defeat overlay when gameStatus is 'lost'", async () => {
+  it("renders the defeat overlay (no skill bar) when gameStatus is 'lost'", async () => {
     const html = await renderHudWith("lost", 9);
     expect(html).toContain("BASTION FELL");
+    expect(html).not.toContain('aria-label="Skills"');
     expect(html).not.toContain("BLOOM PREVAILS");
   });
 });

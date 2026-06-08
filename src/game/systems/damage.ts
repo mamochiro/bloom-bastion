@@ -12,7 +12,6 @@
  */
 import { hasComponent } from "bitecs";
 import {
-  Enemy,
   Health,
   Position,
   Projectile,
@@ -23,19 +22,13 @@ import {
 import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
 import { CHAIN_FALLOFF, CHAIN_RADIUS_TILES, SLOW_DURATION_S, SPECIAL } from "../config/combat";
-import { ENEMY_BY_TYPE } from "../config/enemies";
+import { applyDamage } from "../ecs/apply-damage";
 import { hitQuery } from "../ecs/components";
 import { isSimPaused } from "../ecs/game-state";
 import { releaseProjectile } from "../entities/create-projectile";
 import { CELL } from "../map/coords";
 
 const CHAIN_RADIUS_SQ = (CHAIN_RADIUS_TILES * CELL) ** 2;
-
-/** Apply `rawDamage` to `eid`, reduced by its armor (SPEC §6.2). */
-function applyDamage(eid: number, rawDamage: number): void {
-  const armor = ENEMY_BY_TYPE[Enemy.typeId[eid]]?.armor ?? 0;
-  Health.current[eid] -= rawDamage * (1 - armor);
-}
 
 /**
  * Chain lightning (Stormcloud): arc `baseDamage * CHAIN_FALLOFF` to the up-to-2

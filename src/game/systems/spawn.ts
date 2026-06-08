@@ -21,6 +21,7 @@ import type { System } from "../../engine/loop";
 import { INTER_WAVE_DELAY_S, WAVES, type Wave } from "../config/waves";
 import { isSimPaused } from "../ecs/game-state";
 import { addGold, getGold } from "../ecs/resources";
+import { recordWaveCleared } from "../ecs/skills";
 import { spawnEnemy } from "../entities/create-enemy";
 import { SPAWN } from "../map/coords";
 
@@ -105,6 +106,7 @@ export function createSpawnSystem(waves: readonly Wave[] = WAVES): SpawnSystemHa
     // Wave cleared (fully spawned + board empty)?
     if (fullySpawned() && enemyQuery(world).length === 0) {
       if (currentWave < lastIndex) {
+        recordWaveCleared(currentWave + 1); // advance skill-unlock gates (SPEC §6.4)
         interWaveRemaining = INTER_WAVE_DELAY_S; // prep gap → economy + advance later
       } else {
         // Last wave cleared: credit economy now; DeathSystem declares the win.
@@ -113,6 +115,7 @@ export function createSpawnSystem(waves: readonly Wave[] = WAVES): SpawnSystemHa
         // the same frame) returns us out, and the economy here is idempotent for
         // exactly one frame. Guard against double-credit with a sentinel.
         if (interWaveRemaining !== -1) {
+          recordWaveCleared(currentWave + 1); // unlock gate for the final wave
           applyWaveClearEconomy(world, currentWave + 1);
           interWaveRemaining = -1; // sentinel: final economy credited
         }

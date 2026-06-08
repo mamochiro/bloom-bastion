@@ -17,6 +17,7 @@ describe("game-snapshot store", () => {
       wave: 1,
       enemiesAlive: 0,
       gameStatus: "menu",
+      skills: [],
     });
   });
 
@@ -27,6 +28,7 @@ describe("game-snapshot store", () => {
       wave: 4,
       enemiesAlive: 9,
       gameStatus: "playing",
+      skills: [],
     };
     setSnapshot(next);
     expect(getSnapshot()).toEqual(next);

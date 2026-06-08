@@ -14,6 +14,7 @@ import {
 } from "./config/difficulty";
 import { setPhase } from "./ecs/game-state";
 import { initResources } from "./ecs/resources";
+import { resetSkills } from "./ecs/skills";
 import { releaseEnemy } from "./entities/create-enemy";
 import { releaseProjectile } from "./entities/create-projectile";
 import { releaseTower } from "./entities/create-tower";
@@ -39,6 +40,7 @@ export function startGame(world: World, difficulty: Difficulty): void {
   const d = DIFFICULTY[difficulty];
   initResources(world, d.gold, d.lives);
   SpawnSystem.reset(); // wave 1
+  resetSkills(); // cooldowns, buffs, clearedWaves → 0
   clearBuild();
   setPhase("playing");
 }
@@ -53,6 +55,7 @@ export function restartGame(world: World): void {
   clearEntities(world);
   resetLevel();
   SpawnSystem.reset();
+  resetSkills(); // cooldowns, buffs, clearedWaves → 0
   const d = DIFFICULTY[getActiveDifficulty()];
   initResources(world, d.gold, d.lives); // same difficulty's start (SPEC §6.5)
   clearBuild();

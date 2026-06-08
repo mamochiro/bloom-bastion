@@ -26,6 +26,9 @@ function startDeps(difficulty: "casual" | "normal" | "hardcore") {
       return true;
     },
     getSelectedDifficulty: () => difficulty,
+    consumeSkillActivation: () => null,
+    getSkillAim: () => null,
+    clearSkillAim: () => {},
     consumeRestart: () => false,
     consumeTap: () => false,
     pointerWorldX: () => 0,

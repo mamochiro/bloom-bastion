@@ -38,6 +38,9 @@ function makeDeps() {
       return true;
     },
     getSelectedDifficulty: () => state.difficulty,
+    consumeSkillActivation: () => null,
+    getSkillAim: () => null,
+    clearSkillAim: () => {},
     consumeRestart: () => {
       if (!state.restart) return false;
       state.restart = false;

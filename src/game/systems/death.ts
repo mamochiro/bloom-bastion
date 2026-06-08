@@ -18,6 +18,7 @@ import type { System } from "../../engine/loop";
 import { ENEMY_BY_TYPE } from "../config/enemies";
 import { isSimPaused, setPhase } from "../ecs/game-state";
 import { addGold, getLives } from "../ecs/resources";
+import { goldMultiplier } from "../ecs/skills";
 import { releaseEnemy } from "../entities/create-enemy";
 import { SpawnSystem } from "./spawn";
 
@@ -38,7 +39,8 @@ export function createDeathSystem(
       if (Health.current[eid] > 0) continue;
 
       const cfg = ENEMY_BY_TYPE[Enemy.typeId[eid]];
-      if (cfg) addGold(world, cfg.reward);
+      // GoldRush (SPEC §6.4) doubles kill rewards while active.
+      if (cfg) addGold(world, cfg.reward * goldMultiplier());
       releaseEnemy(world, eid);
     }
 

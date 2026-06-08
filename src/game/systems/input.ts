@@ -29,16 +29,19 @@ import { COST_BLOCKED, COST_GRASS } from "../../engine/pathfinding/flow-field";
 import { clearBuild, getSelectedBuild } from "../../store/build";
 import { consumeRestart, consumeStart } from "../../store/commands";
 import { getSelectedDifficulty } from "../../store/difficulty";
+import { clearSkillAim, consumeSkillActivation, getSkillAim } from "../../store/skills";
 import type { Difficulty } from "../config/difficulty";
+import type { SkillType } from "../config/skills";
 import { TOWER_BY_TYPE } from "../config/towers";
 import { isSimPaused } from "../ecs/game-state";
 import { addGold, getGold } from "../ecs/resources";
+import { activateSkill } from "../ecs/skills";
 import { placeTower } from "../entities/create-tower";
 import { CELL, GRID_H, GRID_W } from "../map/coords";
 import { buildLevel, cellIndex, costGrid } from "../map/level-1";
 import { restartGame, startGame } from "../restart";
 
-/** The slice of input/build/placement the system depends on (injectable for tests). */
+/** The slice of input/build/placement/skills the system depends on (injectable for tests). */
 export interface InputDeps {
   /** True ONCE when "Play" was pressed on the start screen (edge-consume). */
   consumeStart(): boolean;
@@ -46,6 +49,12 @@ export interface InputDeps {
   getSelectedDifficulty(): Difficulty;
   /** True ONCE when "Play Again" was pressed (edge-consume). */
   consumeRestart(): boolean;
+  /** A skill activated instantly this frame (Freeze/GoldRush), or null (true-once). */
+  consumeSkillActivation(): SkillType | null;
+  /** The skill in aim mode (Meteor) whose target is the next tap, or null. */
+  getSkillAim(): SkillType | null;
+  /** Clear the aim mode after the aimed tap resolves. */
+  clearSkillAim(): void;
   /** True ONCE per tap (edge-consume). */
   consumeTap(): boolean;
   /** Tap position in WORLD px (ECS Position space). */
@@ -57,11 +66,14 @@ export interface InputDeps {
   clearBuild(): void;
 }
 
-/** Default deps wired to the live engine-input + ui-build/commands modules. */
+/** Default deps wired to the live engine-input + ui-build/commands/skills modules. */
 const liveDeps: InputDeps = {
   consumeStart,
   getSelectedDifficulty,
   consumeRestart,
+  consumeSkillActivation,
+  getSkillAim,
+  clearSkillAim,
   consumeTap,
   pointerWorldX,
   pointerWorldY,
@@ -84,10 +96,27 @@ export function createInputSystem(deps: InputDeps = liveDeps): System {
     }
 
     // Drain the tap edge every frame (so a tap during pause can't queue into the
-    // next run), then gate placement on an active run.
+    // next run), then gate skills/placement on an active run.
     const tapped = deps.consumeTap();
-    if (isSimPaused()) return world; // not playing → no placement
+    if (isSimPaused()) return world; // not playing → no skills, no placement
+
+    // Instant skills (Freeze/GoldRush) — no tap needed; true-once.
+    const instant = deps.consumeSkillActivation();
+    if (instant !== null) {
+      activateSkill(world, instant);
+      return world;
+    }
+
     if (!tapped) return world; // no tap this frame → zero work
+
+    // A canvas tap while a skill is in AIM mode (Meteor) is the skill's TARGET —
+    // it takes priority over tower placement.
+    const aim = deps.getSkillAim();
+    if (aim !== null) {
+      activateSkill(world, aim, deps.pointerWorldX(), deps.pointerWorldY());
+      deps.clearSkillAim();
+      return world;
+    }
 
     const sel = deps.getSelectedBuild();
     if (sel === null) return world; // tap but nothing selected → ignore
