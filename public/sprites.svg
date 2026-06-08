@@ -29,6 +29,18 @@
       <feComposite in2="b" operator="in" result="g"/>
       <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <filter id="atlas-candyking-body" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.8" result="b"/>
+      <feFlood flood-color="#ff7a6b" flood-opacity="0.75"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="atlas-candyking-crown" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="b"/>
+      <feFlood flood-color="#ffd700" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
     <filter id="atlas-st-bolt" x="-80%" y="-80%" width="260%" height="260%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/>
       <feFlood flood-color="#ffd700" flood-opacity="0.9"/>
@@ -118,6 +130,31 @@
       <circle cx="58" cy="58" r="22" fill="none" stroke="#2a6fae" stroke-width="2.5"/>
       <path d="M58 58 m0 0 a6 6 0 1 1 9 4 a12 12 0 1 1 -18 -8 a18 18 0 1 1 28 14"
         fill="none" stroke="#d2ecff" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+  </symbol>
+
+  <!-- 👑 Candy King enemy — mini-boss, 1200 HP, heals nearby trash (0 0 100 100).
+       Fills the shared 100x100 box more fully than grub/snail so it reads BIGGER. -->
+  <symbol id="enemy-candyking" viewBox="0 0 100 100">
+    <ellipse cx="50" cy="92" rx="32" ry="7" fill="#000" opacity="0.3"/>
+    <g filter="url(#atlas-candyking-body)">
+      <path d="M24 86 Q22 44 50 40 Q78 44 76 86 Z" fill="#ff7a6b"/>
+      <path d="M24 86 Q22 44 50 40 Q64 42 70 60 Q40 56 24 86" fill="#ffd9d2" opacity="0.4"/>
+      <circle cx="40" cy="70" r="3" fill="#fff" opacity="0.7"/>
+      <circle cx="58" cy="76" r="3" fill="#fff" opacity="0.7"/>
+      <circle cx="50" cy="62" r="3" fill="#fff" opacity="0.7"/>
+      <ellipse cx="42" cy="58" rx="3.4" ry="4.4" fill="#3a0f1c"/>
+      <ellipse cx="58" cy="58" rx="3.4" ry="4.4" fill="#3a0f1c"/>
+      <circle cx="41" cy="57" r="1.2" fill="#fff"/>
+      <circle cx="57" cy="57" r="1.2" fill="#fff"/>
+      <path d="M42 66 Q50 72 58 66" stroke="#3a0f1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+    <g filter="url(#atlas-candyking-crown)">
+      <path d="M30 40 L34 24 L42 34 L50 20 L58 34 L66 24 L70 40 Z" fill="#ffd700" stroke="#d9a400" stroke-width="1.5"/>
+      <circle cx="50" cy="22" r="3" fill="#ff6fa5"/>
+      <circle cx="34" cy="26" r="2.4" fill="#4fe0c4"/>
+      <circle cx="66" cy="26" r="2.4" fill="#4fe0c4"/>
+      <rect x="30" y="38" width="40" height="5" rx="2" fill="#d9a400"/>
     </g>
   </symbol>
 

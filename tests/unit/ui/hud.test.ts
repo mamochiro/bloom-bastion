@@ -81,13 +81,22 @@ describe("Hud container — end-game phase gating", () => {
       enemiesAlive: 0,
       gameStatus: "playing",
       skills: [],
+      boss: null,
     });
     container?.remove();
     container = null;
   });
 
   const renderHudWith = async (status: "menu" | "playing" | "won" | "lost", wave: number) => {
-    setSnapshot({ gold: 150, lives: 14, wave, enemiesAlive: 0, gameStatus: status, skills: [] });
+    setSnapshot({
+      gold: 150,
+      lives: 14,
+      wave,
+      enemiesAlive: 0,
+      gameStatus: status,
+      skills: [],
+      boss: null,
+    });
     container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);

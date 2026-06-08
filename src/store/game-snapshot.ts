@@ -56,6 +56,20 @@ export interface GameSnapshot {
    * locked/not-ready defaults from the config meanwhile).
    */
   skills: readonly SkillSnapshot[];
+  /**
+   * Active mini-boss (e.g. Candy King), or null when none is on the field.
+   * `hpFraction` is 1 = full → 0 = dead. gameplay's UISyncSystem sets it
+   * non-null while a boss enemy is alive and clears it to null otherwise.
+   */
+  boss: BossSnapshot | null;
+}
+
+/** Live mini-boss state for the boss health bar (SPEC §6.2 bosses). */
+export interface BossSnapshot {
+  /** Display name (e.g. "Candy King"). */
+  name: string;
+  /** Remaining HP as a fraction, 0..1 (1 = full). */
+  hpFraction: number;
 }
 
 /**
@@ -70,6 +84,7 @@ export const DEFAULT_SNAPSHOT: GameSnapshot = {
   enemiesAlive: 0,
   gameStatus: "menu",
   skills: [],
+  boss: null,
 };
 
 /** Internal Zustand store. Holds ONLY a GameSnapshot — no actions, no logic. */
@@ -105,3 +120,4 @@ export const useEnemiesAlive = (): number => useSnapshotStore((s) => s.enemiesAl
 export const useGameStatus = (): GameSnapshot["gameStatus"] =>
   useSnapshotStore((s) => s.gameStatus);
 export const useSkills = (): readonly SkillSnapshot[] => useSnapshotStore((s) => s.skills);
+export const useBoss = (): BossSnapshot | null => useSnapshotStore((s) => s.boss);

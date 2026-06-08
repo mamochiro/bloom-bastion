@@ -106,6 +106,7 @@ describe("SkillBar container — taps drive the command store", () => {
       enemiesAlive: 0,
       gameStatus: "playing",
       skills: [],
+      boss: null,
     });
     container?.remove();
     container = null;
@@ -129,6 +130,7 @@ describe("SkillBar container — taps drive the command store", () => {
           cooldownFraction: 0,
         },
       ],
+      boss: null,
     });
     container = document.createElement("div");
     document.body.appendChild(container);

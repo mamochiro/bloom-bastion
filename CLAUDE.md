@@ -92,13 +92,15 @@ place towers (**Blossom** slow 50g / **Stormcloud** chain-lightning 100g) → fi
 green (Vitest 130/130), ~235KB gz. Pipeline 9/10 systems real (only Animation,
 slot 8, is a stub). Content: start screen + 3 difficulties, 2 towers, 2 enemies, 3 waves.
 
-Active skills (§6.4): **Meteor** live (tap-to-aim 200 AoE); Freeze/Gold Rush built
-but locked until waves 5/10. `bun run check` green (Vitest 156/156), ~236.5KB gz.
+Active skills (§6.4): all 3 reachable — **Meteor** (tap-to-aim 200 AoE), **Freeze**
+(unlock wave 5), **Gold Rush** (unlock wave 10). **Candy King mini-boss** (§6.2) at
+waves 5 & 10 with a boss-phase system (summon + berserk + slow-immune). 10 waves,
+3 enemies, 2 towers. `bun run check` green (Vitest 172/172), ~237KB gz.
 
-**Next up:** towers 3–6 + L2/L3 upgrades (same pipeline) · waves 4–20 + bosses
-(unlocks Freeze/Gold Rush) · enemy-palette token ADR · skill/death VFX (juice) ·
-tiles board layer. **SPEC clarifications flagged:** Stormcloud chain radius (2.5
-tiles); Meteor damage raw-vs-armor (§6.4 "200 DMG", applied armor-adjusted).
+**Next up:** Flutter + Splitter enemies (§6.3 waves 4/9) · waves 11–20 + Neon
+Dragon final boss · towers 3–6 + L2/L3 · enemy-palette token ADR · VFX juice pass.
+**SPEC clarifications flagged:** Stormcloud chain radius (2.5 tiles); Meteor damage
+raw-vs-armor (§6.4 "200 DMG", applied armor-adjusted).
 
 📋 **Full milestone tracker + append-only decision log live in `docs/PROGRESS.md`**
 (kept out of here so this file stays lean — locked rules only). See SPEC §13 for

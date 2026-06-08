@@ -28,7 +28,7 @@ import type { System } from "../../engine/loop";
 import { flowField, flowIndexAt } from "../../engine/pathfinding/flow-field";
 import { SLOW_REDUCTION } from "../config/combat";
 import { getDifficultyMods } from "../config/difficulty";
-import { ENEMY_BY_TYPE } from "../config/enemies";
+import { ENEMY_BY_TYPE, ENEMY_FLAGS } from "../config/enemies";
 import { isSimPaused } from "../ecs/game-state";
 import { loseLives } from "../ecs/resources";
 import { releaseEnemy } from "../entities/create-enemy";
@@ -78,8 +78,20 @@ export const PathFollowSystem: System = (world: World, dt: number): World => {
     }
 
     const cfg = ENEMY_BY_TYPE[Enemy.typeId[eid]];
-    let speedPx = (cfg ? cfg.speed : 0) * CELL * speedMult; // tiles/s → px/s, difficulty-scaled
-    if (now < Status.slowedUntil[eid]) speedPx *= 1 - SLOW_REDUCTION;
+
+    // Boss phase speed (SPEC §6.2): highest fired phase's multiplier (else 1×).
+    let phaseSpeedMult = 1;
+    const flags = Enemy.flags[eid];
+    if (cfg?.phases) {
+      if (flags & ENEMY_FLAGS.Phase2Done) phaseSpeedMult = cfg.phases[1].speedMult ?? 1;
+      else if (flags & ENEMY_FLAGS.Phase1Done) phaseSpeedMult = cfg.phases[0].speedMult ?? 1;
+    }
+
+    let speedPx = (cfg ? cfg.speed : 0) * CELL * speedMult * phaseSpeedMult; // tiles/s → px/s
+    // Slow (Blossom) — unless slow-immune (Candy King berserk, SPEC §6.2).
+    if ((flags & ENEMY_FLAGS.SlowImmune) === 0 && now < Status.slowedUntil[eid]) {
+      speedPx *= 1 - SLOW_REDUCTION;
+    }
 
     const vx = dx * speedPx;
     const vy = dy * speedPx;

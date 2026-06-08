@@ -18,6 +18,7 @@ describe("game-snapshot store", () => {
       enemiesAlive: 0,
       gameStatus: "menu",
       skills: [],
+      boss: null,
     });
   });
 
@@ -29,6 +30,7 @@ describe("game-snapshot store", () => {
       enemiesAlive: 9,
       gameStatus: "playing",
       skills: [],
+      boss: null,
     };
     setSnapshot(next);
     expect(getSnapshot()).toEqual(next);

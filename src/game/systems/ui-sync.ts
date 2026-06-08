@@ -14,9 +14,10 @@
  * running while the sim is paused so the overlay still updates after the run
  * ends.
  */
-import { type World, enemyQuery } from "../../engine/ecs/world";
+import { Enemy, Health, type World, enemyQuery } from "../../engine/ecs/world";
 import type { System } from "../../engine/loop";
-import { type GameSnapshot, setSnapshot } from "../../store/game-snapshot";
+import { type BossSnapshot, type GameSnapshot, setSnapshot } from "../../store/game-snapshot";
+import { ENEMY_BY_TYPE } from "../config/enemies";
 import { SKILL_ORDER } from "../config/skills";
 import { getPhase } from "../ecs/game-state";
 import { getGold, getLives } from "../ecs/resources";
@@ -25,6 +26,20 @@ import { SpawnSystem } from "./spawn";
 
 /** Minimum seconds between store pushes (≤10Hz). */
 export const PUSH_INTERVAL_S = 0.1;
+
+/** The first live boss enemy's HP-bar state, or null when none is on the field. */
+function findBoss(world: World): BossSnapshot | null {
+  const enemies = enemyQuery(world);
+  for (let i = 0; i < enemies.length; i++) {
+    const e = enemies[i];
+    const cfg = ENEMY_BY_TYPE[Enemy.typeId[e]];
+    if (cfg?.isBoss) {
+      const max = Health.max[e];
+      return { name: cfg.name, hpFraction: max > 0 ? Health.current[e] / max : 0 };
+    }
+  }
+  return null;
+}
 
 /** Build the HUD mirror from authoritative ECS / game state. Allocates one object. */
 export function buildSnapshot(world: World): GameSnapshot {
@@ -43,6 +58,7 @@ export function buildSnapshot(world: World): GameSnapshot {
       cooldownFraction: cooldownFraction(type),
       unlocked: isUnlocked(type),
     })),
+    boss: findBoss(world), // live mini-boss HP bar (SPEC §6.2), or null
   };
 }
 

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Bloom Bastion — Candy King enemy (mini-boss, §6.2: 1200 HP; heals nearby trash).
+       Source: design-assets/sprites_enemies.jsx EnemyCandyKing().
+       Target art: design-assets/screenshots/rev_enemy2.png (bestiary card).
+       Tokens resolved to hex (sprites are not CSS-var themed at runtime):
+       body sugar-mid #ff7a6b / sugar-light #ffd9d2; crown gold #ffd700 / gold-deep #d9a400;
+       crown jewels blossom-mid #ff6fa5 + bubble-mid #4fe0c4; face #3a0f1c.
+       Boss reads LARGER than grub/snail by filling the shared 100x100 viewBox far more
+       fully (crown to y=20, body to y=86) — same viewBox so the RenderSystem (0.5,0.5)
+       anchor lands at (50,50). Static body + crown glow (feGaussianBlur);
+       bob CSS keyframe DEFERRED (juice slice). -->
+  <defs>
+    <filter id="candyking-body-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.8" result="b"/>
+      <feFlood flood-color="#ff7a6b" flood-opacity="0.75"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="candyking-crown-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="b"/>
+      <feFlood flood-color="#ffd700" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <ellipse cx="50" cy="92" rx="32" ry="7" fill="#000" opacity="0.3"/>
+  <g filter="url(#candyking-body-glow)">
+    <!-- body — big gumdrop -->
+    <path d="M24 86 Q22 44 50 40 Q78 44 76 86 Z" fill="#ff7a6b"/>
+    <path d="M24 86 Q22 44 50 40 Q64 42 70 60 Q40 56 24 86" fill="#ffd9d2" opacity="0.4"/>
+    <!-- candy dots -->
+    <circle cx="40" cy="70" r="3" fill="#fff" opacity="0.7"/>
+    <circle cx="58" cy="76" r="3" fill="#fff" opacity="0.7"/>
+    <circle cx="50" cy="62" r="3" fill="#fff" opacity="0.7"/>
+    <!-- face -->
+    <ellipse cx="42" cy="58" rx="3.4" ry="4.4" fill="#3a0f1c"/>
+    <ellipse cx="58" cy="58" rx="3.4" ry="4.4" fill="#3a0f1c"/>
+    <circle cx="41" cy="57" r="1.2" fill="#fff"/>
+    <circle cx="57" cy="57" r="1.2" fill="#fff"/>
+    <path d="M42 66 Q50 72 58 66" stroke="#3a0f1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- crown -->
+  <g filter="url(#candyking-crown-glow)">
+    <path d="M30 40 L34 24 L42 34 L50 20 L58 34 L66 24 L70 40 Z" fill="#ffd700" stroke="#d9a400" stroke-width="1.5"/>
+    <circle cx="50" cy="22" r="3" fill="#ff6fa5"/>
+    <circle cx="34" cy="26" r="2.4" fill="#4fe0c4"/>
+    <circle cx="66" cy="26" r="2.4" fill="#4fe0c4"/>
+    <rect x="30" y="38" width="40" height="5" rx="2" fill="#d9a400"/>
+  </g>
+</svg>

@@ -12,6 +12,7 @@
  */
 import { hasComponent } from "bitecs";
 import {
+  Enemy,
   Health,
   Position,
   Projectile,
@@ -22,13 +23,44 @@ import {
 import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
 import { CHAIN_FALLOFF, CHAIN_RADIUS_TILES, SLOW_DURATION_S, SPECIAL } from "../config/combat";
+import { ENEMY_BY_TYPE, ENEMY_FLAGS, EnemyType } from "../config/enemies";
 import { applyDamage } from "../ecs/apply-damage";
 import { hitQuery } from "../ecs/components";
 import { isSimPaused } from "../ecs/game-state";
+import { spawnEnemy } from "../entities/create-enemy";
 import { releaseProjectile } from "../entities/create-projectile";
 import { CELL } from "../map/coords";
 
 const CHAIN_RADIUS_SQ = (CHAIN_RADIUS_TILES * CELL) ** 2;
+
+/**
+ * Boss HP-threshold phases (SPEC §6.2). After a boss takes damage, trigger any
+ * not-yet-fired phase whose threshold is now crossed: set its `Enemy.flags` bit
+ * (so it fires ONCE), summon grubs, and mark slow-immunity. Speed multipliers
+ * are read from the flags by PathFollowSystem. The x4 summon is a cold one-time
+ * event; the rest is zero-alloc bit ops.
+ */
+function checkBossPhases(world: World, eid: number): void {
+  const cfg = ENEMY_BY_TYPE[Enemy.typeId[eid]];
+  if (!cfg?.phases) return;
+
+  const hpFrac = Health.current[eid] / Health.max[eid];
+  for (let p = 0; p < cfg.phases.length; p++) {
+    const doneBit = p === 0 ? ENEMY_FLAGS.Phase1Done : ENEMY_FLAGS.Phase2Done;
+    if ((Enemy.flags[eid] & doneBit) !== 0) continue; // already fired
+    if (hpFrac > cfg.phases[p].hpFrac) continue; // threshold not crossed
+
+    const phase = cfg.phases[p];
+    Enemy.flags[eid] |= doneBit;
+    if (phase.slowImmune) Enemy.flags[eid] |= ENEMY_FLAGS.SlowImmune;
+    if (phase.summonGrubs) {
+      for (let k = 0; k < phase.summonGrubs; k++) {
+        // Fan out slightly so the summoned grubs don't perfectly overlap.
+        spawnEnemy(world, EnemyType.Grub, Position.x[eid] - k * 6, Position.y[eid]);
+      }
+    }
+  }
+}
 
 /**
  * Chain lightning (Stormcloud): arc `baseDamage * CHAIN_FALLOFF` to the up-to-2
@@ -89,6 +121,8 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
         // Primary already took full damage; arc 50% to the 2 nearest others.
         chainLightning(world, target, damage);
       }
+      // Boss phase transitions (SPEC §6.2) — no-op for non-boss enemies.
+      checkBossPhases(world, target);
     }
 
     releaseProjectile(world, proj);

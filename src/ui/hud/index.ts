@@ -1,3 +1,4 @@
+export { BossBar } from "./BossBar";
 export { Hud } from "./Hud";
 export { SkillBar } from "./SkillBar";
 export { StartScreen } from "./StartScreen";

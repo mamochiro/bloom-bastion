@@ -14,6 +14,32 @@
  */
 import type { SpriteKey } from "./sprites";
 
+/**
+ * Per-enemy `Enemy.flags` (ui16) bits. Boss-phase progress is recorded here so
+ * DamageSystem triggers each phase once and PathFollowSystem reads the active
+ * speed multiplier + slow-immunity — all zero-alloc bit tests.
+ */
+export const ENEMY_FLAGS = {
+  /** Boss phase 0 (Candy King 50% HP) has fired. */
+  Phase1Done: 1 << 0,
+  /** Boss phase 1 (Candy King 25% HP / berserk) has fired. */
+  Phase2Done: 1 << 1,
+  /** Enemy ignores slow (Candy King berserk). */
+  SlowImmune: 1 << 2,
+} as const;
+
+/** A boss HP-threshold phase (SPEC §6.2 boss phases). */
+export interface BossPhase {
+  /** Fires when `Health.current / Health.max <= hpFrac`. */
+  readonly hpFrac: number;
+  /** Grubs summoned near the boss when this phase fires. */
+  readonly summonGrubs?: number;
+  /** Speed multiplier applied while this is the boss's highest-fired phase. */
+  readonly speedMult?: number;
+  /** When true, the boss becomes immune to slow once this phase fires. */
+  readonly slowImmune?: boolean;
+}
+
 export interface EnemyConfig {
   /** Stable string id (SPEC §6.2 `ID` column). */
   readonly id: string;
@@ -32,6 +58,10 @@ export interface EnemyConfig {
    * `effectiveDamage = damage * (1 - armor)`. Default 0 (no armor).
    */
   readonly armor?: number;
+  /** Marks a boss (UISync surfaces its HP bar; DamageSystem runs its phases). */
+  readonly isBoss?: boolean;
+  /** HP-threshold phases, ordered high→low HP (SPEC §6.2). */
+  readonly phases?: readonly BossPhase[];
 }
 
 /** 🐛 Grub — SPEC §6.2: HP 60, Speed 1.0, Reward 8g, no special. */
@@ -55,10 +85,30 @@ const SNAIL: EnemyConfig = {
   armor: 0.5,
 };
 
+/**
+ * 👑 Candy King — SPEC §6.2: HP 1200, Speed 0.7, Reward 100g, mini-boss.
+ * Phases: 50% HP → summon 4 Grubs + speed ×1.2; 25% HP → berserk ×1.4 + slow-immune.
+ */
+const CANDY_KING: EnemyConfig = {
+  id: "candy_king",
+  name: "Candy King",
+  hp: 1200,
+  speed: 0.7,
+  reward: 100,
+  sprite: "enemy-candyking",
+  armor: 0,
+  isBoss: true,
+  phases: [
+    { hpFrac: 0.5, summonGrubs: 4, speedMult: 1.2 },
+    { hpFrac: 0.25, speedMult: 1.4, slowImmune: true },
+  ],
+};
+
 /** Numeric `Enemy.typeId` (ui8) — the index stored in the ECS component. */
 export const EnemyType = {
   Grub: 0,
   Snail: 1,
+  CandyKing: 2,
 } as const;
 
 export type EnemyTypeId = (typeof EnemyType)[keyof typeof EnemyType];
@@ -67,10 +117,12 @@ export type EnemyTypeId = (typeof EnemyType)[keyof typeof EnemyType];
 export const ENEMIES: Readonly<Record<string, EnemyConfig>> = {
   grub: GRUB,
   snail: SNAIL,
+  candy_king: CANDY_KING,
 };
 
 /** Lookup by numeric `Enemy.typeId` (what factories/systems carry). */
 export const ENEMY_BY_TYPE: Readonly<Record<number, EnemyConfig>> = {
   [EnemyType.Grub]: GRUB,
   [EnemyType.Snail]: SNAIL,
+  [EnemyType.CandyKing]: CANDY_KING,
 };
