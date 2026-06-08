@@ -23,23 +23,24 @@ export interface GameSnapshot {
   /** Enemies currently alive on the battlefield. */
   enemiesAlive: number;
   /**
-   * Run phase: 'playing' during a run, 'lost' when the bastion falls
-   * (lives <= 0), 'won' when every wave is cleared. gameplay's UISyncSystem
-   * pushes the terminal states.
+   * Run phase: 'menu' before a run starts (boot state), 'playing' during a run,
+   * 'lost' when the bastion falls (lives <= 0), 'won' when every wave is
+   * cleared. gameplay's UISyncSystem pushes the run/terminal states.
    */
-  gameStatus: "playing" | "won" | "lost";
+  gameStatus: "menu" | "playing" | "won" | "lost";
 }
 
 /**
- * Defaults = SPEC §6.5 Normal ("Bloom") difficulty start: 150 gold / 20 lives,
- * wave 1, no enemies yet, playing. These render before the first UISync tick.
+ * Defaults = boot state: the game opens on the MENU (gameStatus 'menu') with
+ * SPEC §6.5 Normal ("Bloom") economy preview (150 gold / 20 lives, wave 1).
+ * gameplay flips to 'playing' (seeding the chosen difficulty) on start.
  */
 export const DEFAULT_SNAPSHOT: GameSnapshot = {
   gold: 150,
   lives: 20,
   wave: 1,
   enemiesAlive: 0,
-  gameStatus: "playing",
+  gameStatus: "menu",
 };
 
 /** Internal Zustand store. Holds ONLY a GameSnapshot — no actions, no logic. */

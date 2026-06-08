@@ -79,7 +79,7 @@ describe("Hud container — end-game phase gating", () => {
     container = null;
   });
 
-  const renderHudWith = async (status: "playing" | "won" | "lost", wave: number) => {
+  const renderHudWith = async (status: "menu" | "playing" | "won" | "lost", wave: number) => {
     setSnapshot({ gold: 150, lives: 14, wave, enemiesAlive: 0, gameStatus: status });
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -94,8 +94,17 @@ describe("Hud container — end-game phase gating", () => {
     return html;
   };
 
-  it("renders neither overlay while playing", async () => {
+  it("renders the start screen on 'menu' (and no end overlays)", async () => {
+    const html = await renderHudWith("menu", 1);
+    expect(html).toContain('role="radiogroup"');
+    expect(html).toContain("Bastion");
+    expect(html).not.toContain("BASTION FELL");
+    expect(html).not.toContain("BLOOM PREVAILS");
+  });
+
+  it("renders neither the start screen nor an end overlay while playing", async () => {
     const html = await renderHudWith("playing", 1);
+    expect(html).not.toContain('role="radiogroup"');
     expect(html).not.toContain("BASTION FELL");
     expect(html).not.toContain("BLOOM PREVAILS");
   });

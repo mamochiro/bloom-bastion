@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { enemyQuery, towerQuery, world } from "../../../src/engine/ecs/world";
 import { COST_BLOCKED } from "../../../src/engine/pathfinding/flow-field";
+import type { Difficulty } from "../../../src/game/config/difficulty";
 import { EnemyType } from "../../../src/game/config/enemies";
 import { TowerType } from "../../../src/game/config/towers";
 import { getPhase, setPhase } from "../../../src/game/ecs/game-state";
@@ -23,12 +24,20 @@ function makeDeps() {
   const state = {
     tap: false,
     restart: false,
+    start: false,
+    difficulty: "normal" as Difficulty,
     x: 0,
     y: 0,
     sel: null as number | null,
     cleared: false,
   };
   const deps: InputDeps = {
+    consumeStart: () => {
+      if (!state.start) return false;
+      state.start = false;
+      return true;
+    },
+    getSelectedDifficulty: () => state.difficulty,
     consumeRestart: () => {
       if (!state.restart) return false;
       state.restart = false;

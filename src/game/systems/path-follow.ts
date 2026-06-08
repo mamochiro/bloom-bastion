@@ -27,6 +27,7 @@ import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
 import { flowField, flowIndexAt } from "../../engine/pathfinding/flow-field";
 import { SLOW_REDUCTION } from "../config/combat";
+import { getDifficultyMods } from "../config/difficulty";
 import { ENEMY_BY_TYPE } from "../config/enemies";
 import { isSimPaused } from "../ecs/game-state";
 import { loseLives } from "../ecs/resources";
@@ -44,6 +45,7 @@ export const PathFollowSystem: System = (world: World, dt: number): World => {
   if (isSimPaused()) return world; // frozen on win/lose
   const ents = pathfinderQuery(world);
   const now = gameTime();
+  const speedMult = getDifficultyMods().speedMult; // active difficulty (SPEC §6.5)
   for (let n = ents.length - 1; n >= 0; n--) {
     const eid = ents[n];
     if (Pathfinder.followFlowField[eid] !== 1) continue;
@@ -69,7 +71,7 @@ export const PathFollowSystem: System = (world: World, dt: number): World => {
     }
 
     const cfg = ENEMY_BY_TYPE[Enemy.typeId[eid]];
-    let speedPx = (cfg ? cfg.speed : 0) * CELL; // tiles/s → px/s
+    let speedPx = (cfg ? cfg.speed : 0) * CELL * speedMult; // tiles/s → px/s, difficulty-scaled
     if (now < Status.slowedUntil[eid]) speedPx *= 1 - SLOW_REDUCTION;
 
     const vx = dx * speedPx;

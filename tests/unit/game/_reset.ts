@@ -12,6 +12,7 @@
  * copies via `Array.from` are fine here.
  */
 import { type World, enemyQuery, projectileQuery, towerQuery } from "../../../src/engine/ecs/world";
+import { DEFAULT_DIFFICULTY, setActiveDifficulty } from "../../../src/game/config/difficulty";
 import { resetPhase } from "../../../src/game/ecs/game-state";
 import { _resetResourcesCache } from "../../../src/game/ecs/resources";
 import { releaseEnemy } from "../../../src/game/entities/create-enemy";
@@ -26,4 +27,5 @@ export function resetGameWorld(world: World): void {
   _resetResourcesCache();
   resetPhase(); // back to 'playing' so the pause guard doesn't freeze the next test
   SpawnSystem.reset(); // re-arm the live wave instance (shared singleton)
+  setActiveDifficulty(DEFAULT_DIFFICULTY); // back to 'normal' (1.0× mults) for isolation
 }

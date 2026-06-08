@@ -27,17 +27,23 @@ import { consumeTap, pointerWorldX, pointerWorldY } from "../../engine/input/inp
 import type { System } from "../../engine/loop";
 import { COST_BLOCKED, COST_GRASS } from "../../engine/pathfinding/flow-field";
 import { clearBuild, getSelectedBuild } from "../../store/build";
-import { consumeRestart } from "../../store/commands";
+import { consumeRestart, consumeStart } from "../../store/commands";
+import { getSelectedDifficulty } from "../../store/difficulty";
+import type { Difficulty } from "../config/difficulty";
 import { TOWER_BY_TYPE } from "../config/towers";
 import { isSimPaused } from "../ecs/game-state";
 import { addGold, getGold } from "../ecs/resources";
 import { placeTower } from "../entities/create-tower";
 import { CELL, GRID_H, GRID_W } from "../map/coords";
 import { buildLevel, cellIndex, costGrid } from "../map/level-1";
-import { restartGame } from "../restart";
+import { restartGame, startGame } from "../restart";
 
 /** The slice of input/build/placement the system depends on (injectable for tests). */
 export interface InputDeps {
+  /** True ONCE when "Play" was pressed on the start screen (edge-consume). */
+  consumeStart(): boolean;
+  /** The difficulty chosen on the start screen. */
+  getSelectedDifficulty(): Difficulty;
   /** True ONCE when "Play Again" was pressed (edge-consume). */
   consumeRestart(): boolean;
   /** True ONCE per tap (edge-consume). */
@@ -53,6 +59,8 @@ export interface InputDeps {
 
 /** Default deps wired to the live engine-input + ui-build/commands modules. */
 const liveDeps: InputDeps = {
+  consumeStart,
+  getSelectedDifficulty,
   consumeRestart,
   consumeTap,
   pointerWorldX,
@@ -64,8 +72,12 @@ const liveDeps: InputDeps = {
 /** Build an InputSystem over `deps` (defaults to the live engine/ui wiring). */
 export function createInputSystem(deps: InputDeps = liveDeps): System {
   return (world: World, _dt: number): World => {
-    // Restart is checked BEFORE the pause guard so "Play Again" works while the
-    // sim is frozen on a finished run.
+    // Start / restart are checked BEFORE the pause guard so they work while the
+    // sim is frozen (menu / won / lost).
+    if (deps.consumeStart()) {
+      startGame(world, deps.getSelectedDifficulty());
+      return world;
+    }
     if (deps.consumeRestart()) {
       restartGame(world);
       return world;

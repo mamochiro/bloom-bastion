@@ -10,13 +10,13 @@ import {
 beforeEach(() => setSnapshot({ ...DEFAULT_SNAPSHOT }));
 
 describe("game-snapshot store", () => {
-  it("defaults to SPEC §6.5 Normal start (150 gold / 20 lives / wave 1)", () => {
+  it("boots to the menu with a Normal economy preview (150 gold / 20 lives / wave 1)", () => {
     expect(getSnapshot()).toEqual({
       gold: 150,
       lives: 20,
       wave: 1,
       enemiesAlive: 0,
-      gameStatus: "playing",
+      gameStatus: "menu",
     });
   });
 

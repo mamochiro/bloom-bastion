@@ -21,6 +21,7 @@ import {
   type World,
 } from "../../engine/ecs/world";
 import { enemyPool } from "../../engine/pool/pools";
+import { getDifficultyMods } from "../config/difficulty";
 import { ENEMY_BY_TYPE } from "../config/enemies";
 import { spriteId } from "../config/sprites";
 
@@ -50,8 +51,10 @@ export function spawnEnemy(world: World, typeId: number, x: number, y: number): 
   Velocity.vy[eid] = 0;
 
   addComponent(world, Health, eid);
-  Health.current[eid] = cfg.hp;
-  Health.max[eid] = cfg.hp;
+  // Scale HP by the active difficulty (SPEC §6.5). cached mods → zero-alloc.
+  const hp = cfg.hp * getDifficultyMods().hpMult;
+  Health.current[eid] = hp;
+  Health.max[eid] = hp;
 
   addComponent(world, Renderable, eid);
   // RenderSystem keys textures off the sprite registry id (config/sprites.ts),
