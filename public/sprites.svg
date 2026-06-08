@@ -29,6 +29,18 @@
       <feComposite in2="b" operator="in" result="g"/>
       <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <filter id="atlas-st-bolt" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/>
+      <feFlood flood-color="#ffd700" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="atlas-st-cloud" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#5db8ff" flood-opacity="0.85"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
 
   <!-- 🌸 Blossom tower, L1 — grounded at viewBox bottom (0 0 120 150). -->
@@ -49,6 +61,28 @@
       <circle cx="60" cy="62" r="6" fill="#ffd700" opacity="0.55"/>
       <circle cx="58.2" cy="60.2" r="1.92" fill="#fff" opacity="0.9"/>
     </g>
+  </symbol>
+
+  <!-- ⚡ Stormcloud tower, L1 — grounded at viewBox bottom (0 0 120 150). -->
+  <symbol id="tower-stormcloud-l1" viewBox="0 0 120 150">
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#2a6fae"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#5db8ff"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#2a6fae" opacity="0.7"/>
+    <g filter="url(#atlas-st-bolt)">
+      <path d="M58 78 L50 102 L60 100 L52 122 L74 92 L63 94 L70 78 Z" fill="#ffd700" stroke="#fff7d6" stroke-width="1.2"/>
+    </g>
+    <g filter="url(#atlas-st-cloud)">
+      <circle cx="48.1" cy="58" r="9.35" fill="#d2ecff"/>
+      <circle cx="71.9" cy="58" r="9.35" fill="#d2ecff"/>
+      <circle cx="56.6" cy="50.05" r="11.05" fill="#d2ecff"/>
+      <circle cx="65.95" cy="51.75" r="9.35" fill="#d2ecff"/>
+      <rect x="39.6" y="56" width="40.8" height="9.35" rx="5.1" fill="#d2ecff"/>
+    </g>
+    <circle cx="60" cy="58" r="10.5" fill="#fff" opacity="0.18"/>
+    <circle cx="60" cy="58" r="5" fill="#fff"/>
+    <circle cx="60" cy="58" r="5" fill="#fff" opacity="0.55"/>
+    <circle cx="58.5" cy="56.5" r="1.6" fill="#fff" opacity="0.9"/>
   </symbol>
 
   <!-- 🐛 Grub enemy (0 0 100 100). -->

@@ -84,14 +84,17 @@ bloom-bastion/
 
 ## 🎯 Current Status
 
-**M1 — Core Loop** complete + playable through **waves 1–3** (place towers → fight
-3 advancing waves of Grubs then an armored Snail → win/lose → replay). Real
-data-driven wave system (ADR-0003), wave-clear economy, armor, native-color sprite
-art. `bun run check` green (Vitest 94/94), ~233.5KB gz (<400KB budget). Pipeline is
-9/10 systems real (only Animation, slot 8, is a stub).
+**M1 — Core Loop** complete + playable through **waves 1–3** with a real strategic
+tower choice: **Blossom** (slow, single-target, 50g) vs **Stormcloud** (chain
+lightning, AoE, 100g). Place towers → fight 3 advancing waves (Grubs → armored
+Snail) → win/lose → replay. Data-driven waves (ADR-0003) + wave-clear economy +
+armor + native-color sprite art. `bun run check` green (Vitest 112/112), ~234KB gz.
+Pipeline 9/10 systems real (only Animation, slot 8, is a stub). Content: 2 towers,
+2 enemies, 3 waves.
 
-**Next up:** waves 4–20 + bosses (same schema) · difficulty multipliers (§6.5) ·
-enemy-palette token ADR (design-dev rec) · death juice · tiles board layer.
+**Next up:** towers 3–6 + L2/L3 upgrades (same pipeline) · waves 4–20 + bosses ·
+difficulty multipliers (§6.5) · enemy-palette token ADR · death juice · tiles board
+layer. **SPEC gaps flagged:** Stormcloud chain radius (2.5 tiles, not-locked).
 
 📋 **Full milestone tracker + append-only decision log live in `docs/PROGRESS.md`**
 (kept out of here so this file stays lean — locked rules only). See SPEC §13 for

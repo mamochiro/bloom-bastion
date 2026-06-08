@@ -58,7 +58,10 @@ export const TowerAISystem: System = (world: World, dt: number): World => {
 
     if (bestEid < 0) continue; // nothing in range — stay ready (cooldown ≤ 0)
 
-    const special = cfg.slow ? SPECIAL.Slow : SPECIAL.None;
+    // Build the projectile's effect bits from this tower's config specials.
+    let special = SPECIAL.None;
+    if (cfg.slow) special |= SPECIAL.Slow;
+    if (cfg.chain) special |= SPECIAL.Chain;
     createProjectile(world, tx, ty, bestEid, cfg.damage, special);
     Tower.cooldown[tower] = cfg.cooldown;
     Tower.lastTarget[tower] = bestEid;

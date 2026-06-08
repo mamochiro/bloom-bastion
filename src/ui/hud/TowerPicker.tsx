@@ -1,44 +1,90 @@
 import type { CSSProperties } from "react";
-import { TOWER_BY_TYPE, TowerType } from "../../game/config/towers";
+import { PLACEABLE_TOWERS, TOWER_BY_TYPE, type TowerTypeId } from "../../game/config/towers";
 import { clearBuild, selectBuild, useSelectedBuild } from "../../store/build";
 import { useGold } from "../../store/game-snapshot";
 
 /**
+ * UI-side family accent token per tower — the chip tint/border/glow (the sprite
+ * itself renders its own native fills). Keyed by the config's string `id` so it
+ * extends automatically as gameplay adds towers. Note the token family name
+ * isn't always the id (id `stormcloud` → token `--storm-*`).
+ */
+const TOWER_ACCENT: Readonly<Record<string, string>> = {
+  blossom: "var(--blossom-mid)",
+  stormcloud: "var(--storm-mid)",
+};
+const DEFAULT_ACCENT = "var(--text-soft)";
+
+/** View-model a single card needs — projected from gameplay's tower config. */
+export interface TowerCardModel {
+  type: TowerTypeId;
+  name: string;
+  cost: number;
+  spriteId: string;
+  accent: string;
+}
+
+/** Project a tower type's config into a card view-model. */
+export function towerCardModel(type: TowerTypeId): TowerCardModel {
+  const config = TOWER_BY_TYPE[type];
+  return {
+    type,
+    name: config.name,
+    cost: config.cost,
+    spriteId: config.sprite,
+    accent: TOWER_ACCENT[config.id] ?? DEFAULT_ACCENT,
+  };
+}
+
+/**
  * Tower-pick bar (SPEC §8, mockup `design-assets/screenshots/fix_hud2.png` —
- * bottom dock "Tower picker"). A thumb-reachable bottom bar of tower cards; each
- * card reads its state at a glance — selected (lifted + glowing ring), can't
- * afford (dimmed + red cost). Tapping toggles the build selection
- * (`src/store/build.ts`); gameplay's InputSystem reads that intent on a canvas
- * tap to place the tower.
- *
- * This slice ships the single Blossom card (sprite `tower-blossom-l1`, 50g).
- * The other five families + skill buttons + NEXT-wave dock land in later slices.
- *
- * Pointer-events discipline (CRITICAL): the bar itself is `pointer-events:none`
- * so empty gaps let canvas taps through to the placement listener; only the
- * card buttons opt back in (`pointer-events:auto`) so a tap on a card does NOT
- * fall through to the canvas.
+ * bottom dock "Tower picker"). Container: subscribes to gold + the build
+ * selection, projects every placeable tower into a card, and toggles the build
+ * intent on tap (`src/store/build.ts`); gameplay's InputSystem reads that intent
+ * on a canvas tap to place the tower. The markup is the PURE `TowerDeck` below.
  */
 export function TowerPicker() {
   const gold = useGold();
   const selected = useSelectedBuild();
+  const towers = PLACEABLE_TOWERS.map(towerCardModel);
 
-  const blossom = TOWER_BY_TYPE[TowerType.Blossom];
-  const affordable = gold >= blossom.cost;
-  const isSelected = selected === TowerType.Blossom;
-
-  const onToggle = () => {
-    switch (resolveTowerTap(isSelected, affordable)) {
+  const onToggle = (type: TowerTypeId) => {
+    const affordable = gold >= TOWER_BY_TYPE[type].cost;
+    switch (resolveTowerTap(selected === type, affordable)) {
       case "select":
-        selectBuild(TowerType.Blossom);
+        selectBuild(type);
         break;
       case "clear":
         clearBuild();
         break;
-      // "noop" — unaffordable & unselected; button is disabled so this is unreachable.
+      // "noop" — unaffordable & unselected; the card is disabled so this is unreachable.
     }
   };
 
+  return <TowerDeck towers={towers} gold={gold} selected={selected} onToggle={onToggle} />;
+}
+
+/**
+ * Bottom dock of tower cards — PURE (props in → markup out, no store). One
+ * `TowerCard` per placeable tower; each reads its own affordability (gold vs its
+ * cost) and selected state.
+ *
+ * Pointer-events discipline (CRITICAL): the bar itself is `pointer-events:none`
+ * so empty gaps let canvas taps through to the placement listener; only the card
+ * buttons opt back in (`pointer-events:auto`, see `TowerCard`) so a tap on a card
+ * does NOT fall through to the canvas.
+ */
+export function TowerDeck({
+  towers,
+  gold,
+  selected,
+  onToggle,
+}: {
+  towers: readonly TowerCardModel[];
+  gold: number;
+  selected: TowerTypeId | null;
+  onToggle: (type: TowerTypeId) => void;
+}) {
   const bar: CSSProperties = {
     position: "absolute",
     left: 0,
@@ -57,15 +103,18 @@ export function TowerPicker() {
 
   return (
     <nav style={bar} aria-label="Tower picker">
-      <TowerCard
-        name={blossom.name}
-        cost={blossom.cost}
-        spriteId={blossom.sprite}
-        accent="var(--blossom-mid)"
-        affordable={affordable}
-        selected={isSelected}
-        onToggle={onToggle}
-      />
+      {towers.map((tower) => (
+        <TowerCard
+          key={tower.type}
+          name={tower.name}
+          cost={tower.cost}
+          spriteId={tower.spriteId}
+          accent={tower.accent}
+          affordable={gold >= tower.cost}
+          selected={selected === tower.type}
+          onToggle={() => onToggle(tower.type)}
+        />
+      ))}
     </nav>
   );
 }

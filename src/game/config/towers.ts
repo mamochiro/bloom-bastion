@@ -23,6 +23,14 @@ export interface SlowEffect {
   readonly durationS: number;
 }
 
+/** Chain lightning applied on hit (SPEC §6.1 Stormcloud special). */
+export interface ChainEffect {
+  /** Total enemies struck, incl. the primary (SPEC §6.1: 3). */
+  readonly maxTargets: number;
+  /** Damage fraction dealt to each CHAINED enemy, 0..1 (SPEC §6.1: 0.5). */
+  readonly falloff: number;
+}
+
 export interface TowerConfig {
   /** Stable string id. */
   readonly id: string;
@@ -40,6 +48,8 @@ export interface TowerConfig {
   readonly sprite: SpriteKey;
   /** On-hit slow (SPEC §6.1 Blossom special). */
   readonly slow?: SlowEffect;
+  /** On-hit chain lightning (SPEC §6.1 Stormcloud special). */
+  readonly chain?: ChainEffect;
 }
 
 /**
@@ -57,9 +67,25 @@ const BLOSSOM: TowerConfig = {
   slow: { speedReduction: 0.4, durationS: 2 },
 };
 
+/**
+ * ⚡ Stormcloud (base) — SPEC §6.1: 20 DMG, 2.2 range, 1.0s fire rate, 100g.
+ * Special: chains to 3 nearest enemies, 50% damage each (primary full + 2 @50%).
+ */
+const STORMCLOUD: TowerConfig = {
+  id: "stormcloud",
+  name: "Stormcloud",
+  damage: 20,
+  range: 2.2,
+  cooldown: 1.0,
+  cost: 100,
+  sprite: "tower-stormcloud-l1",
+  chain: { maxTargets: 3, falloff: 0.5 },
+};
+
 /** Numeric `Tower.typeId` (ui8) — the index stored in the ECS component. */
 export const TowerType = {
   Blossom: 0,
+  Stormcloud: 1,
 } as const;
 
 export type TowerTypeId = (typeof TowerType)[keyof typeof TowerType];
@@ -70,9 +96,17 @@ export const BASE_TOWER_LEVEL = 1;
 /** Lookup by string id. */
 export const TOWERS: Readonly<Record<string, TowerConfig>> = {
   blossom: BLOSSOM,
+  stormcloud: STORMCLOUD,
 };
 
 /** Lookup by numeric `Tower.typeId` (what factories/systems carry). */
 export const TOWER_BY_TYPE: Readonly<Record<number, TowerConfig>> = {
   [TowerType.Blossom]: BLOSSOM,
+  [TowerType.Stormcloud]: STORMCLOUD,
 };
+
+/**
+ * Placeable towers in display order — one card per entry for the UI TowerPicker.
+ * Carries the numeric typeId so the UI can pass it straight to placement/build.
+ */
+export const PLACEABLE_TOWERS: readonly TowerTypeId[] = [TowerType.Blossom, TowerType.Stormcloud];
