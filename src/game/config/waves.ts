@@ -58,25 +58,29 @@ export const WAVES: readonly Wave[] = [
       { enemy: EnemyType.Grub, count: 6, intervalS: 1.0, startDelayS: 1.0 },
     ],
   },
-  // Wave 6 — 16 Grubs @0.55s + 5 Snails @1.0s @+2.
+  // Wave 6 — mix of all basics (§6.3): 16 Grub@0.55 + 5 Snail@1.0 + 4 Shade@1.1 dodgers.
   {
     groups: [
       { enemy: EnemyType.Grub, count: 16, intervalS: 0.55, startDelayS: 0 },
       { enemy: EnemyType.Snail, count: 5, intervalS: 1.0, startDelayS: 2.0 },
+      { enemy: EnemyType.Shade, count: 4, intervalS: 1.1, startDelayS: 3.0 },
     ],
   },
-  // Wave 7 — snail-heavy: 12 Grubs @0.5s + 7 Snails @0.9s @+1.
+  // Wave 7 — mix (§6.3): 12 Grub@0.5 + 7 Snail@0.9 + 3 Plushy@1.5 tanks.
   {
     groups: [
       { enemy: EnemyType.Grub, count: 12, intervalS: 0.5, startDelayS: 0 },
       { enemy: EnemyType.Snail, count: 7, intervalS: 0.9, startDelayS: 1.0 },
+      { enemy: EnemyType.Plushy, count: 3, intervalS: 1.5, startDelayS: 2.5 },
     ],
   },
-  // Wave 8 — 20 Grubs @0.45s + 6 Snails @0.8s @+1.5.
+  // Wave 8 — full mix (§6.3): 18 Grub@0.45 + 5 Snail@0.8 + 5 Shade@1.0 + 3 Plushy@1.6.
   {
     groups: [
-      { enemy: EnemyType.Grub, count: 20, intervalS: 0.45, startDelayS: 0 },
-      { enemy: EnemyType.Snail, count: 6, intervalS: 0.8, startDelayS: 1.5 },
+      { enemy: EnemyType.Grub, count: 18, intervalS: 0.45, startDelayS: 0 },
+      { enemy: EnemyType.Snail, count: 5, intervalS: 0.8, startDelayS: 1.5 },
+      { enemy: EnemyType.Shade, count: 5, intervalS: 1.0, startDelayS: 2.0 },
+      { enemy: EnemyType.Plushy, count: 3, intervalS: 1.6, startDelayS: 3.5 },
     ],
   },
   // Wave 9 — INTRODUCE Splitter (SPEC §6.3): Grub/Snail ramp + 4 Splitters @1.4s @+2.

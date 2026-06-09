@@ -53,6 +53,24 @@
       <feComposite in2="b" operator="in" result="g"/>
       <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <filter id="atlas-shade-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3.2" result="b"/>
+      <feFlood flood-color="#c77dff" flood-opacity="0.85"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="atlas-shade-eye" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="b"/>
+      <feFlood flood-color="#c77dff" flood-opacity="0.95"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="atlas-plushy-glow" x="-55%" y="-55%" width="210%" height="210%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.8" result="b"/>
+      <feFlood flood-color="#ffb74d" flood-opacity="0.7"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
     <filter id="atlas-st-bolt" x="-80%" y="-80%" width="260%" height="260%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/>
       <feFlood flood-color="#ffd700" flood-opacity="0.9"/>
@@ -208,6 +226,41 @@
       <circle cx="59" cy="45" r="2.6" fill="#0d3a26"/>
       <line x1="50" y1="26" x2="50" y2="70" stroke="#0d3a26" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.5"/>
       <path d="M44 56 Q50 60 56 56" stroke="#0d3a26" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+  </symbol>
+
+  <!-- 💀 Shade enemy — ethereal ghost/skull, phases the first tower (0 0 100 100, centered). -->
+  <symbol id="enemy-shade" viewBox="0 0 100 100">
+    <ellipse cx="50" cy="88" rx="20" ry="5" fill="#8c4dff" opacity="0.25"/>
+    <g filter="url(#atlas-shade-glow)" opacity="0.92">
+      <path d="M30 60 Q30 28 50 28 Q70 28 70 60 L70 78 Q66 70 62 78 Q58 70 54 78 Q50 70 46 78 Q42 70 38 78 Q34 70 30 78 Z" fill="#2a1652"/>
+      <path d="M30 60 Q30 28 50 28 Q70 28 70 60 L70 70 Q50 64 30 70 Z" fill="#8c4dff" opacity="0.5"/>
+    </g>
+    <g filter="url(#atlas-shade-eye)">
+      <ellipse cx="42" cy="52" rx="4" ry="5.5" fill="#c77dff"/>
+      <ellipse cx="58" cy="52" rx="4" ry="5.5" fill="#c77dff"/>
+    </g>
+    <ellipse cx="42" cy="53" rx="1.6" ry="2.4" fill="#fff"/>
+    <ellipse cx="58" cy="53" rx="1.6" ry="2.4" fill="#fff"/>
+  </symbol>
+
+  <!-- 🧸 Plushy enemy — soft plush teddy, tanky regenerator (0 0 100 100, centered). -->
+  <symbol id="enemy-plushy" viewBox="0 0 100 100">
+    <ellipse cx="50" cy="90" rx="28" ry="6" fill="#000" opacity="0.28"/>
+    <g filter="url(#atlas-plushy-glow)">
+      <circle cx="34" cy="34" r="10" fill="#e07b1f"/>
+      <circle cx="66" cy="34" r="10" fill="#e07b1f"/>
+      <circle cx="34" cy="34" r="5" fill="#ffb74d"/>
+      <circle cx="66" cy="34" r="5" fill="#ffb74d"/>
+      <ellipse cx="40" cy="84" rx="9" ry="8" fill="#e07b1f"/>
+      <ellipse cx="60" cy="84" rx="9" ry="8" fill="#e07b1f"/>
+      <rect x="32" y="56" width="36" height="30" rx="16" fill="#ffb74d"/>
+      <circle cx="50" cy="48" r="20" fill="#ffb74d"/>
+      <circle cx="50" cy="54" r="9" fill="#ffe9b0"/>
+      <ellipse cx="50" cy="52" rx="3" ry="2.4" fill="#5a3210"/>
+      <path d="M40 44 l5 5 M45 44 l-5 5" stroke="#3a2008" stroke-width="2" stroke-linecap="round"/>
+      <path d="M55 44 l5 5 M60 44 l-5 5" stroke="#3a2008" stroke-width="2" stroke-linecap="round"/>
+      <line x1="50" y1="56" x2="50" y2="86" stroke="#e07b1f" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.6"/>
     </g>
   </symbol>
 

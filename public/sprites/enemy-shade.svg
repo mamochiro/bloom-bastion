@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Bloom Bastion — Shade enemy (ethereal ghost/skull; phases through the first tower it passes — §6.2: Special tier).
+       Source: design-assets/sprites_enemies.jsx EnemyShade().
+       Tokens resolved to hex (sprites are not CSS-var themed at runtime):
+       shade-core #8c4dff / shade-glow #c77dff; body literal #2a1652; eye highlights #fff.
+       Semi-transparent body reads as 'hard to hit/dodgy'. Mid-sized — sits between flutter and grub.
+       Glowing eyes + wispy aura baked statically (feGaussianBlur); bob CSS keyframes DEFERRED (juice slice). -->
+  <defs>
+    <filter id="shade-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3.2" result="b"/>
+      <feFlood flood-color="#c77dff" flood-opacity="0.85"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shade-eye-glow" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="b"/>
+      <feFlood flood-color="#c77dff" flood-opacity="0.95"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <ellipse cx="50" cy="88" rx="20" ry="5" fill="#8c4dff" opacity="0.25"/>
+  <g filter="url(#shade-glow)" opacity="0.92">
+    <!-- ethereal shroud body w/ wispy tail -->
+    <path d="M30 60 Q30 28 50 28 Q70 28 70 60 L70 78 Q66 70 62 78 Q58 70 54 78 Q50 70 46 78 Q42 70 38 78 Q34 70 30 78 Z" fill="#2a1652"/>
+    <path d="M30 60 Q30 28 50 28 Q70 28 70 60 L70 70 Q50 64 30 70 Z" fill="#8c4dff" opacity="0.5"/>
+  </g>
+  <!-- glowing eyes -->
+  <g filter="url(#shade-eye-glow)">
+    <ellipse cx="42" cy="52" rx="4" ry="5.5" fill="#c77dff"/>
+    <ellipse cx="58" cy="52" rx="4" ry="5.5" fill="#c77dff"/>
+  </g>
+  <ellipse cx="42" cy="53" rx="1.6" ry="2.4" fill="#fff"/>
+  <ellipse cx="58" cy="53" rx="1.6" ry="2.4" fill="#fff"/>
+</svg>

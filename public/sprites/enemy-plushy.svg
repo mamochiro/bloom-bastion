@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Bloom Bastion — Plushy enemy (soft plush teddy; tanky damage-sponge regenerator — §6.2: Tank tier).
+       Source: design-assets/sprites_enemies.jsx EnemyPlushy().
+       Tokens resolved to hex (sprites are not CSS-var themed at runtime):
+       hive-dark #e07b1f / hive-mid #ffb74d / hive-light #ffe9b0 (warm honey-amber, cuddly);
+       muzzle literal #5a3210; stitched-X eyes #3a2008. Stitched-X face = the 'no mercy' tell.
+       Chunky/wide — fills the box like the candyking; reads as a tank.
+       Soft amber plush glow baked statically (feGaussianBlur); waddle CSS keyframes DEFERRED (juice slice). -->
+  <defs>
+    <filter id="plushy-glow" x="-55%" y="-55%" width="210%" height="210%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.8" result="b"/>
+      <feFlood flood-color="#ffb74d" flood-opacity="0.7"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <ellipse cx="50" cy="90" rx="28" ry="6" fill="#000" opacity="0.28"/>
+  <g filter="url(#plushy-glow)">
+    <!-- ears -->
+    <circle cx="34" cy="34" r="10" fill="#e07b1f"/>
+    <circle cx="66" cy="34" r="10" fill="#e07b1f"/>
+    <circle cx="34" cy="34" r="5" fill="#ffb74d"/>
+    <circle cx="66" cy="34" r="5" fill="#ffb74d"/>
+    <!-- legs -->
+    <ellipse cx="40" cy="84" rx="9" ry="8" fill="#e07b1f"/>
+    <ellipse cx="60" cy="84" rx="9" ry="8" fill="#e07b1f"/>
+    <!-- body -->
+    <rect x="32" y="56" width="36" height="30" rx="16" fill="#ffb74d"/>
+    <!-- head -->
+    <circle cx="50" cy="48" r="20" fill="#ffb74d"/>
+    <circle cx="50" cy="54" r="9" fill="#ffe9b0"/>
+    <ellipse cx="50" cy="52" rx="3" ry="2.4" fill="#5a3210"/>
+    <!-- stitched-X eyes (deadly tell) -->
+    <path d="M40 44 l5 5 M45 44 l-5 5" stroke="#3a2008" stroke-width="2" stroke-linecap="round"/>
+    <path d="M55 44 l5 5 M60 44 l-5 5" stroke="#3a2008" stroke-width="2" stroke-linecap="round"/>
+    <!-- seam -->
+    <line x1="50" y1="56" x2="50" y2="86" stroke="#e07b1f" stroke-width="1.5" stroke-dasharray="2 3" opacity="0.6"/>
+  </g>
+</svg>

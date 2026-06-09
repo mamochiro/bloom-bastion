@@ -16,6 +16,7 @@
  */
 import {
   Enemy,
+  Health,
   Pathfinder,
   Position,
   Status,
@@ -78,6 +79,13 @@ export const PathFollowSystem: System = (world: World, dt: number): World => {
     }
 
     const cfg = ENEMY_BY_TYPE[Enemy.typeId[eid]];
+
+    // Regen (Plushy, SPEC §6.2): heal regenPerSec·dt up to max while alive. The
+    // current>0 guard prevents reviving (dead enemies are released by Death).
+    if (cfg?.regenPerSec && Health.current[eid] > 0 && Health.current[eid] < Health.max[eid]) {
+      const healed = Health.current[eid] + cfg.regenPerSec * dt;
+      Health.current[eid] = healed < Health.max[eid] ? healed : Health.max[eid];
+    }
 
     // Boss phase speed (SPEC §6.2): highest fired phase's multiplier (else 1×).
     let phaseSpeedMult = 1;

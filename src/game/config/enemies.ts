@@ -50,6 +50,8 @@ export const EnemyType = {
   Flutter: 3,
   Splitter: 4,
   MiniSplitter: 5,
+  Shade: 6,
+  Plushy: 7,
 } as const;
 
 export type EnemyTypeId = (typeof EnemyType)[keyof typeof EnemyType];
@@ -88,6 +90,10 @@ export interface EnemyConfig {
   readonly flying?: boolean;
   /** Spawn-on-death burst (Splitter → mini-splitters). */
   readonly onDeathSplit?: SplitEffect;
+  /** Chance 0..1 to fully avoid a hit (Shade dodge, SPEC §6.2). applyDamage rolls it. */
+  readonly dodgeChance?: number;
+  /** HP healed per second while alive (Plushy regen, SPEC §6.2). PathFollow applies it. */
+  readonly regenPerSec?: number;
 }
 
 /** 🐛 Grub — SPEC §6.2: HP 60, Speed 1.0, Reward 8g, no special. */
@@ -166,6 +172,28 @@ const MINI_SPLITTER: EnemyConfig = {
   sprite: "enemy-splitter",
 };
 
+/** 💀 Shade — SPEC §6.2: HP 90, Speed 1.6, Reward 15g, 20% dodge chance. */
+const SHADE: EnemyConfig = {
+  id: "shade",
+  name: "Shade",
+  hp: 90,
+  speed: 1.6,
+  reward: 15,
+  sprite: "enemy-shade",
+  dodgeChance: 0.2,
+};
+
+/** 🧸 Plushy — SPEC §6.2: HP 150, Speed 0.9, Reward 20g, regenerates 5 HP/s. */
+const PLUSHY: EnemyConfig = {
+  id: "plushy",
+  name: "Plushy",
+  hp: 150,
+  speed: 0.9,
+  reward: 20,
+  sprite: "enemy-plushy",
+  regenPerSec: 5,
+};
+
 /** Lookup by string id. */
 export const ENEMIES: Readonly<Record<string, EnemyConfig>> = {
   grub: GRUB,
@@ -174,6 +202,8 @@ export const ENEMIES: Readonly<Record<string, EnemyConfig>> = {
   flutter: FLUTTER,
   splitter: SPLITTER,
   mini_splitter: MINI_SPLITTER,
+  shade: SHADE,
+  plushy: PLUSHY,
 };
 
 /** Lookup by numeric `Enemy.typeId` (what factories/systems carry). */
@@ -184,4 +214,6 @@ export const ENEMY_BY_TYPE: Readonly<Record<number, EnemyConfig>> = {
   [EnemyType.Flutter]: FLUTTER,
   [EnemyType.Splitter]: SPLITTER,
   [EnemyType.MiniSplitter]: MINI_SPLITTER,
+  [EnemyType.Shade]: SHADE,
+  [EnemyType.Plushy]: PLUSHY,
 };
