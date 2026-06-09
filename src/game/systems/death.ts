@@ -16,10 +16,12 @@
 import { Enemy, Health, Position, type World, enemyQuery } from "../../engine/ecs/world";
 import type { System } from "../../engine/loop";
 import { ENEMY_BY_TYPE } from "../config/enemies";
+import { TINT } from "../config/tokens";
 import { isSimPaused, setPhase } from "../ecs/game-state";
 import { addGold, getLives } from "../ecs/resources";
 import { goldMultiplier } from "../ecs/skills";
 import { releaseEnemy, spawnEnemy } from "../entities/create-enemy";
+import { spawnBurst, spawnFloatingText } from "../vfx";
 import { SpawnSystem } from "./spawn";
 
 /**
@@ -41,7 +43,15 @@ export function createDeathSystem(
       const cfg = ENEMY_BY_TYPE[Enemy.typeId[eid]];
       if (cfg) {
         // GoldRush (SPEC §6.4) doubles kill rewards while active.
-        addGold(world, cfg.reward * goldMultiplier());
+        const reward = cfg.reward * goldMultiplier();
+        addGold(world, reward);
+
+        // VFX (cold on-death event): a death poof in the enemy palette (bigger
+        // for bosses) + the kill reward floating up in gold.
+        const x = Position.x[eid];
+        const y = Position.y[eid];
+        spawnBurst(x, y, TINT.shadeGlow, cfg.isBoss ? 40 : 12);
+        spawnFloatingText(`+${reward}g`, x, y, TINT.gold);
         // Split on death (SPEC §6.2 Splitter): spawn the minis at the dead
         // enemy's position, fanned out, each on the flow field (spawnEnemy sets
         // Pathfinder + fresh flags). Minis have NO onDeathSplit → no recursion.

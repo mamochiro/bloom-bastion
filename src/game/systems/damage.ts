@@ -24,12 +24,14 @@ import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
 import { CHAIN_FALLOFF, CHAIN_RADIUS_TILES, SLOW_DURATION_S, SPECIAL } from "../config/combat";
 import { ENEMY_BY_TYPE, ENEMY_FLAGS, EnemyType } from "../config/enemies";
+import { TINT } from "../config/tokens";
 import { applyDamage } from "../ecs/apply-damage";
 import { hitQuery } from "../ecs/components";
 import { isSimPaused } from "../ecs/game-state";
 import { spawnEnemy } from "../entities/create-enemy";
 import { releaseProjectile } from "../entities/create-projectile";
 import { CELL } from "../map/coords";
+import { flashEntity, spawnBurst } from "../vfx";
 
 const CHAIN_RADIUS_SQ = (CHAIN_RADIUS_TILES * CELL) ** 2;
 
@@ -53,7 +55,11 @@ function checkBossPhases(world: World, eid: number): void {
     const phase = cfg.phases[p];
     Enemy.flags[eid] |= doneBit;
     if (phase.slowImmune) Enemy.flags[eid] |= ENEMY_FLAGS.SlowImmune;
-    if (phase.setFlying) Enemy.flags[eid] |= ENEMY_FLAGS.Flying; // Neon Dragon P2 takes flight
+    if (phase.setFlying) {
+      Enemy.flags[eid] |= ENEMY_FLAGS.Flying; // Neon Dragon P2 takes flight
+      // One-time enrage burst (no PERSISTENT tint — that would fight the hit-flash).
+      spawnBurst(Position.x[eid], Position.y[eid], TINT.shadeCore, 40);
+    }
     if (phase.summonGrubs) {
       for (let k = 0; k < phase.summonGrubs; k++) {
         // Fan out slightly so the summoned grubs don't perfectly overlap.
@@ -111,7 +117,9 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
 
     if (hasComponent(world, Health, target)) {
       const damage = Projectile.damage[proj];
-      applyDamage(target, damage); // full damage to the primary (armor-adjusted)
+      // Full damage to the primary (armor-adjusted). Flash only on a hit that
+      // actually lands — NOT a Shade dodge / 0-damage (applyDamage returns false).
+      if (applyDamage(target, damage)) flashEntity(target);
 
       if ((special & SPECIAL.Slow) !== 0 && hasComponent(world, Status, target)) {
         // Slow magnitude is read by PathFollowSystem (SLOW_REDUCTION); here we

@@ -17,7 +17,9 @@ import { Status } from "../../engine/ecs/world";
 import { gameTime } from "../../engine/loop";
 import { ENEMY_FLAGS } from "../config/enemies";
 import { SKILLS, type SkillType } from "../config/skills";
+import { TINT } from "../config/tokens";
 import { CELL } from "../map/coords";
+import { spawnBurst } from "../vfx";
 import { applyDamage } from "./apply-damage";
 
 /** gameTime at which each skill is usable again (≤ now ⇒ ready). */
@@ -91,6 +93,8 @@ function meteorStrike(
     const dy = Position.y[e] - y;
     if (dx * dx + dy * dy <= radiusSq) applyDamage(e, aoeDamage);
   }
+  // VFX (cold skill event): a fiery/gold impact boom at the strike point.
+  spawnBurst(x, y, TINT.gold, 30);
 }
 
 /**

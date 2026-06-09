@@ -22,6 +22,7 @@ import { releaseProjectile } from "../../../src/game/entities/create-projectile"
 import { releaseTower } from "../../../src/game/entities/create-tower";
 import { resetBossSummon } from "../../../src/game/systems/path-follow";
 import { SpawnSystem } from "../../../src/game/systems/spawn";
+import { resetVfx } from "../../../src/game/vfx";
 
 export function resetGameWorld(world: World): void {
   for (const eid of Array.from(enemyQuery(world))) releaseEnemy(world, eid);
@@ -34,4 +35,5 @@ export function resetGameWorld(world: World): void {
   resetSkills(); // cooldowns / buffs / clearedWaves → 0
   resetDamageRng(); // dodge RNG back to Math.random
   resetBossSummon(); // Neon Dragon summon timer
+  resetVfx(); // VFX sink back to no-op
 }

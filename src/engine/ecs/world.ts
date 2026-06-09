@@ -29,8 +29,16 @@ export const Velocity = defineComponent({ vx: Types.f32, vy: Types.f32 });
 /** Current / max hit points. */
 export const Health = defineComponent({ current: Types.f32, max: Types.f32 });
 
-/** Visual binding: atlas sprite id + tint (0xRRGGBB packed). */
-export const Renderable = defineComponent({ spriteId: Types.ui16, tint: Types.ui32 });
+/**
+ * Visual binding: atlas sprite id + tint (0xRRGGBB packed). `tint` is FX-ONLY:
+ * base is 0 (native sprite colours); a transient hit-flash sets it non-zero
+ * until `flashUntil` (game seconds), after which AnimationSystem clears it.
+ */
+export const Renderable = defineComponent({
+  spriteId: Types.ui16,
+  tint: Types.ui32,
+  flashUntil: Types.f32,
+});
 
 /** Tower instance: type, upgrade level, fire cooldown (s), current target eid. */
 export const Tower = defineComponent({

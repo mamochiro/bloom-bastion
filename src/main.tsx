@@ -2,8 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { startLoop } from "./engine/loop";
 import { bootRenderer } from "./engine/renderer/pixi-app";
+import { flashEntity, spawnBurst, spawnFloatingText } from "./engine/renderer/vfx";
 import { buildLevel } from "./game/map/level-1";
 import { GAME_SYSTEMS } from "./game/pipeline";
+import { setVfx } from "./game/vfx";
 import { App } from "./ui/App";
 import "./ui/styles/globals.css";
 
@@ -20,6 +22,12 @@ async function start(): Promise<void> {
   }
 
   await bootRenderer(gameMount);
+
+  // Wire the live engine VFX (pooled particle bursts / floating text / hit-flash)
+  // into gameplay's injectable VfxSink, now that the Pixi stage exists. Until
+  // this runs the sink is a no-op (tests use a spy); after it, combat events
+  // (death, hit, Meteor) render their juice via AnimationSystem (slot 8).
+  setVfx({ spawnBurst, spawnFloatingText, flashEntity });
 
   // Build the board's cost grid + flow field so it renders behind the start
   // screen. The game boots into the 'menu' phase — the sim is FROZEN (no spawn /

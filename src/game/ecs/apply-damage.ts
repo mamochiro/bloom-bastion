@@ -28,10 +28,15 @@ export function resetDamageRng(): void {
  *  - Dodge (Shade, §6.2): with `dodgeChance` probability the hit is fully
  *    avoided — 0 damage, no Health change.
  *  - Armor (Snail, §6.2): otherwise effective = raw·(1 − armor).
+ *
+ * @returns true if any damage was actually dealt (caller uses this to gate the
+ *          hit-flash VFX — no flash on a dodge / 0-damage hit).
  */
-export function applyDamage(eid: number, rawDamage: number): void {
+export function applyDamage(eid: number, rawDamage: number): boolean {
   const cfg = ENEMY_BY_TYPE[Enemy.typeId[eid]];
-  if (cfg?.dodgeChance && _rng() < cfg.dodgeChance) return; // dodged → no damage
+  if (cfg?.dodgeChance && _rng() < cfg.dodgeChance) return false; // dodged → no damage
   const armor = cfg?.armor ?? 0;
-  Health.current[eid] -= rawDamage * (1 - armor);
+  const effective = rawDamage * (1 - armor);
+  Health.current[eid] -= effective;
+  return effective > 0;
 }

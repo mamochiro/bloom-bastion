@@ -1,6 +1,12 @@
+import { advanceGameClock, resetGameClock } from "./clock";
 import type { World } from "./ecs/world";
 import { world } from "./ecs/world";
 import { RenderSystem } from "./renderer/render-system";
+import { AnimationSystem } from "./renderer/vfx";
+
+// gameTime lives in clock.ts (dependency-free, breaks the loop↔vfx cycle); we
+// re-export it here so existing `import { gameTime } from ".../loop"` keeps working.
+export { gameTime } from "./clock";
 
 /**
  * The fixed-timestep-ish RAF game loop (SPEC §4.6) and the LOCKED system
@@ -36,8 +42,8 @@ const ProjectileSystem: System = (w, _dt) => w;
 const DamageSystem: System = (w, _dt) => w;
 /** 7 — rewards, death particles, entity cleanup. */
 const DeathSystem: System = (w, _dt) => w;
-/** 8 — sync Rive animation state from components. */
-const AnimationSystem: System = (w, _dt) => w;
+// 8 — AnimationSystem: REAL VFX tick (pooled particles + floating text +
+//     hit-flash decay), imported from ./renderer/vfx.
 // 9 — RenderSystem: real Pixi draw, imported from ./renderer/render-system.
 /** 10 — push a throttled (≤10Hz, added later) snapshot to Zustand. */
 const UISyncSystem: System = (w, _dt) => w;
@@ -95,7 +101,6 @@ let lastTime = 0;
 let running = false;
 let paused = false;
 let frame = 0;
-let gameClock = 0;
 
 /** The pipeline the running loop ticks. Swapped in by {@link startLoop}. */
 let activeSystems: readonly System[] = SYSTEMS;
@@ -103,18 +108,6 @@ let activeSystems: readonly System[] = SYSTEMS;
 /** Monotonic frame counter (incremented per ticked frame). For tests/e2e. */
 export function getFrameCount(): number {
   return frame;
-}
-
-/**
- * Accumulated GAME time in SECONDS — the single monotonic clock gameplay should
- * compare time-stamped state against (e.g. `Status.slowedUntil/stunnedUntil/
- * dotUntil`). It sums the SAME per-frame `dt` the pipeline ticks with (already
- * clamped to 50ms, SPEC §4.6), so it is decoupled from wall-clock time, and it
- * does NOT advance while the loop is paused (Page Visibility). Reset to 0 by
- * {@link startLoop}. Zero-alloc getter.
- */
-export function gameTime(): number {
-  return gameClock;
 }
 
 /**
@@ -130,7 +123,7 @@ export function frameStep(rawDt: number, isPaused: boolean): number {
   // Guard against negative/NaN and clamp long stalls (SPEC §4.6).
   if (!(dt > 0)) dt = 0;
   else if (dt > MAX_DT) dt = MAX_DT;
-  gameClock += dt;
+  advanceGameClock(dt);
   runSystems(world, dt, activeSystems);
   frame++;
   return dt;
@@ -160,7 +153,7 @@ export function startLoop(systems: readonly System[] = SYSTEMS): void {
   if (running) return;
   running = true;
   activeSystems = systems;
-  gameClock = 0; // fresh game clock per run (SPEC §4.6 game time)
+  resetGameClock(); // fresh game clock per run (SPEC §4.6 game time)
   paused = typeof document !== "undefined" && document.hidden;
   lastTime = performance.now();
   document.addEventListener("visibilitychange", onVisibilityChange);

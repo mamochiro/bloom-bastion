@@ -90,11 +90,13 @@ bloom-bastion/
 Shade/dodge, Plushy/regen, Splitter/split, + bosses **Candy King** @5/10/15 and
 **Neon Dragon** @20) → use **3 skills** (Meteor + Freeze@5 + Gold Rush@10) → win
 ("BLOOM PREVAILS") / lose → replay. Data-driven waves (ADR-0003), wave-clear economy,
-boss-phase system, difficulty scaling, real SVG sprite art. `bun run check` green
-(Vitest 194/194), ~238KB gz. Pipeline 9/10 systems real (only Animation, slot 8, stub).
+boss-phase system, difficulty scaling, real SVG sprite art, **combat VFX** (hit-flash,
+death bursts, floating gold, Meteor impact). `bun run check` green (Vitest 204/204),
+~239KB gz. **Pipeline 10/10 systems REAL — no stubs** (AnimationSystem drives the VFX).
 
 **Next up (all polish/expansion — core game is complete):** Endless mode · towers 3–6
-+ L2/L3 · VFX juice pass · enemy-palette token ADR · balance playtest tuning.
++ L2/L3 · VFX pass 2 (animated glow / screen FX / enrage tint / §4.5 adaptive quality) ·
+enemy-palette token ADR · balance playtest tuning.
 **SPEC clarifications flagged:** Stormcloud chain radius (2.5 tiles); Meteor damage
 raw-vs-armor; Neon Dragon "Plushies on tower-death" (needs a tower-death mechanic).
 

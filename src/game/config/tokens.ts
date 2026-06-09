@@ -21,6 +21,8 @@ export const TINT = {
   shadeGlow: 0xc77dff,
   /** --shade-core #8c4dff (deeper enemy corruption — heavier/armored enemies). */
   shadeCore: 0x8c4dff,
+  /** --gold #ffd700 (gold reward text, Meteor impact — FX). */
+  gold: 0xffd700,
 } as const;
 
 export type Tint = (typeof TINT)[keyof typeof TINT];
