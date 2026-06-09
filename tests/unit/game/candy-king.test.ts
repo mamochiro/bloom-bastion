@@ -105,13 +105,14 @@ describe("Candy King mini-boss (SPEC §6.2)", () => {
     expect(enemyQuery(world).length).toBe(0);
   });
 
-  it("WAVES has 10 entries with Candy King at waves 5 and 10", () => {
-    expect(WAVES.length).toBe(10);
+  it("WAVES has 20 entries with Candy King at waves 5, 10 and 15", () => {
+    expect(WAVES.length).toBe(20);
     const hasCK = (i: number) => WAVES[i].groups.some((g) => g.enemy === CK);
     expect(hasCK(4)).toBe(true); // wave 5
     expect(hasCK(9)).toBe(true); // wave 10
+    expect(hasCK(14)).toBe(true); // wave 15
     // No CK in the non-boss waves.
-    expect([0, 1, 2, 3, 5, 6, 7, 8].some(hasCK)).toBe(false);
+    expect([0, 1, 2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18, 19].some(hasCK)).toBe(false);
   });
 
   it("clearing waves 5 / 10 unlocks Freeze / Gold Rush", () => {

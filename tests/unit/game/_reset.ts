@@ -20,6 +20,7 @@ import { resetSkills } from "../../../src/game/ecs/skills";
 import { releaseEnemy } from "../../../src/game/entities/create-enemy";
 import { releaseProjectile } from "../../../src/game/entities/create-projectile";
 import { releaseTower } from "../../../src/game/entities/create-tower";
+import { resetBossSummon } from "../../../src/game/systems/path-follow";
 import { SpawnSystem } from "../../../src/game/systems/spawn";
 
 export function resetGameWorld(world: World): void {
@@ -32,4 +33,5 @@ export function resetGameWorld(world: World): void {
   setActiveDifficulty(DEFAULT_DIFFICULTY); // back to 'normal' (1.0× mults) for isolation
   resetSkills(); // cooldowns / buffs / clearedWaves → 0
   resetDamageRng(); // dodge RNG back to Math.random
+  resetBossSummon(); // Neon Dragon summon timer
 }

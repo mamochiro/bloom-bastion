@@ -19,6 +19,7 @@ import { releaseEnemy } from "./entities/create-enemy";
 import { releaseProjectile } from "./entities/create-projectile";
 import { releaseTower } from "./entities/create-tower";
 import { resetLevel } from "./map/level-1";
+import { resetBossSummon } from "./systems/path-follow";
 import { SpawnSystem } from "./systems/spawn";
 
 /** Release every live enemy / projectile / tower back to its pool. */
@@ -41,6 +42,7 @@ export function startGame(world: World, difficulty: Difficulty): void {
   initResources(world, d.gold, d.lives);
   SpawnSystem.reset(); // wave 1
   resetSkills(); // cooldowns, buffs, clearedWaves → 0
+  resetBossSummon(); // Neon Dragon summon timer
   clearBuild();
   setPhase("playing");
 }
@@ -56,6 +58,7 @@ export function restartGame(world: World): void {
   resetLevel();
   SpawnSystem.reset();
   resetSkills(); // cooldowns, buffs, clearedWaves → 0
+  resetBossSummon(); // Neon Dragon summon timer
   const d = DIFFICULTY[getActiveDifficulty()];
   initResources(world, d.gold, d.lives); // same difficulty's start (SPEC §6.5)
   clearBuild();

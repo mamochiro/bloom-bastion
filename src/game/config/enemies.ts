@@ -40,6 +40,18 @@ export interface BossPhase {
   readonly speedMult?: number;
   /** When true, the boss becomes immune to slow once this phase fires. */
   readonly slowImmune?: boolean;
+  /** When true, the boss gains the Flying flag once this phase fires (Neon Dragon P2). */
+  readonly setFlying?: boolean;
+}
+
+/** Recurring timed summon while above an HP fraction (Neon Dragon P1, SPEC §6.2). */
+export interface PeriodicSummon {
+  /** Enemy type spawned each tick. */
+  readonly type: EnemyTypeId;
+  /** Seconds between summons. */
+  readonly everyS: number;
+  /** Only summon while `Health.current / Health.max > whileHpFracAbove`. */
+  readonly whileHpFracAbove: number;
 }
 
 /** Numeric `Enemy.typeId` (ui8) — the index stored in the ECS component. */
@@ -52,6 +64,7 @@ export const EnemyType = {
   MiniSplitter: 5,
   Shade: 6,
   Plushy: 7,
+  NeonDragon: 8,
 } as const;
 
 export type EnemyTypeId = (typeof EnemyType)[keyof typeof EnemyType];
@@ -94,6 +107,8 @@ export interface EnemyConfig {
   readonly dodgeChance?: number;
   /** HP healed per second while alive (Plushy regen, SPEC §6.2). PathFollow applies it. */
   readonly regenPerSec?: number;
+  /** Recurring timed summon while above an HP fraction (Neon Dragon P1, SPEC §6.2). */
+  readonly periodicSummon?: PeriodicSummon;
 }
 
 /** 🐛 Grub — SPEC §6.2: HP 60, Speed 1.0, Reward 8g, no special. */
@@ -194,6 +209,24 @@ const PLUSHY: EnemyConfig = {
   regenPerSec: 5,
 };
 
+/**
+ * 🐲 Neon Dragon — SPEC §6.2: HP 4000, Speed 0.8, Reward 300g, FINAL boss (wave 20).
+ * P1 (100–50%): summons 1 Flutter every 5s. P2 (≤50%): flies (immune to ground-
+ * splash) + speed ×1.5. (§6.2 P2 "spawns Plushies on tower death" is NOT BUILDABLE
+ * — towers can't die in this game — so it is SKIPPED + FLAGGED.)
+ */
+const NEON_DRAGON: EnemyConfig = {
+  id: "neon_dragon",
+  name: "Neon Dragon",
+  hp: 4000,
+  speed: 0.8,
+  reward: 300,
+  sprite: "enemy-neon-dragon",
+  isBoss: true,
+  phases: [{ hpFrac: 0.5, speedMult: 1.5, setFlying: true }],
+  periodicSummon: { type: EnemyType.Flutter, everyS: 5, whileHpFracAbove: 0.5 },
+};
+
 /** Lookup by string id. */
 export const ENEMIES: Readonly<Record<string, EnemyConfig>> = {
   grub: GRUB,
@@ -204,6 +237,7 @@ export const ENEMIES: Readonly<Record<string, EnemyConfig>> = {
   mini_splitter: MINI_SPLITTER,
   shade: SHADE,
   plushy: PLUSHY,
+  neon_dragon: NEON_DRAGON,
 };
 
 /** Lookup by numeric `Enemy.typeId` (what factories/systems carry). */
@@ -216,4 +250,5 @@ export const ENEMY_BY_TYPE: Readonly<Record<number, EnemyConfig>> = {
   [EnemyType.MiniSplitter]: MINI_SPLITTER,
   [EnemyType.Shade]: SHADE,
   [EnemyType.Plushy]: PLUSHY,
+  [EnemyType.NeonDragon]: NEON_DRAGON,
 };

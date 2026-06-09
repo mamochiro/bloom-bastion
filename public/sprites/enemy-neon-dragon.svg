@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Bloom Bastion — Neon Dragon enemy (FINAL BOSS, §6.2: 4000 HP, 2 phases).
+       Source: design-assets/sprites_enemies.jsx EnemyDragon() phase 1, enlarged to
+       fill the shared 100x100 viewBox far more fully than any other enemy (the
+       campaign climax). Target art: design-assets/screenshots/proto_enemies*.png.
+       Tokens resolved to hex (sprites are not CSS-var themed at runtime):
+       body bubble-mid #4fe0c4 (mint gradient → #a6f5e6 / #2bb8a0); accent luna-mid
+       #b388ff; nostril fire gold #ffd700; eye #1a0f2e.
+       Same viewBox as every enemy so the RenderSystem (0.5,0.5) anchor lands at
+       (50,50). Static double-layer neon glow (feGaussianBlur x2); bob/flicker CSS
+       animation DEFERRED to the juice slice. Phase-2 (enraged red) is a future
+       gameplay variant, not a separate sprite id. -->
+  <defs>
+    <filter id="dragon-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="b1"/>
+      <feFlood flood-color="#4fe0c4" flood-opacity="0.95"/>
+      <feComposite in2="b1" operator="in" result="g1"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b2"/>
+      <feFlood flood-color="#b388ff" flood-opacity="0.85"/>
+      <feComposite in2="b2" operator="in" result="g2"/>
+      <feMerge><feMergeNode in="g1"/><feMergeNode in="g2"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="dragon-fire" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="b"/>
+      <feFlood flood-color="#ffd700" flood-opacity="0.95"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="dragon-body-grad" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#a6f5e6"/>
+      <stop offset="55%" stop-color="#4fe0c4"/>
+      <stop offset="100%" stop-color="#2bb8a0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="50" cy="93" rx="40" ry="8" fill="#000" opacity="0.32"/>
+  <g filter="url(#dragon-glow)">
+    <!-- serpentine body — thick neon coil sweeping the whole box -->
+    <path d="M10 86 Q6 50 30 46 Q56 42 56 64 Q56 84 76 80 Q94 76 92 38"
+          fill="none" stroke="url(#dragon-body-grad)" stroke-width="16" stroke-linecap="round"/>
+    <path d="M10 86 Q6 50 30 46 Q56 42 56 64 Q56 84 76 80 Q94 76 92 38"
+          fill="none" stroke="#b388ff" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+    <path d="M10 86 Q6 50 30 46 Q56 42 56 64 Q56 84 76 80 Q94 76 92 38"
+          fill="none" stroke="#eafff9" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    <!-- dorsal spines — tall ridge along the back -->
+    <path d="M22 50 l6 -16 l6 16 Z" fill="#b388ff"/>
+    <path d="M40 44 l6 -18 l6 18 Z" fill="#b388ff"/>
+    <path d="M56 48 l6 -15 l6 15 Z" fill="#b388ff" opacity="0.95"/>
+    <path d="M74 58 l6 -14 l6 14 Z" fill="#b388ff" opacity="0.9"/>
+    <!-- head — large, at upper-right -->
+    <g transform="translate(92 36)">
+      <path d="M-20 -14 Q10 -22 14 4 Q10 20 -14 16 Q-28 6 -20 -14" fill="url(#dragon-body-grad)"/>
+      <path d="M-10 -16 l3 -16 l8 12 Z" fill="#b388ff"/>
+      <path d="M4 -16 l6 -14 l5 14 Z" fill="#b388ff"/>
+      <path d="M-20 -14 Q10 -22 14 4 Q4 -6 -20 -2 Z" fill="#eafff9" opacity="0.28"/>
+      <circle cx="-2" cy="-3" r="6" fill="#fff"/>
+      <circle cx="0" cy="-3" r="3.2" fill="#1a0f2e"/>
+      <circle cx="-1.4" cy="-4.4" r="1.1" fill="#fff"/>
+      <path d="M8 4 Q16 2 16 8 Q14 14 6 12" fill="#2bb8a0"/>
+    </g>
+  </g>
+  <!-- nostril fire — gold flame breath, own bright halo -->
+  <g filter="url(#dragon-fire)" transform="translate(92 36)">
+    <path d="M16 8 q10 -3 16 1 q-6 3 -3 8 q-7 -2 -13 -9" fill="#ffd700"/>
+    <circle cx="18" cy="9" r="3" fill="#fff5c2"/>
+  </g>
+</svg>

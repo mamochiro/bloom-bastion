@@ -53,6 +53,7 @@ function checkBossPhases(world: World, eid: number): void {
     const phase = cfg.phases[p];
     Enemy.flags[eid] |= doneBit;
     if (phase.slowImmune) Enemy.flags[eid] |= ENEMY_FLAGS.SlowImmune;
+    if (phase.setFlying) Enemy.flags[eid] |= ENEMY_FLAGS.Flying; // Neon Dragon P2 takes flight
     if (phase.summonGrubs) {
       for (let k = 0; k < phase.summonGrubs; k++) {
         // Fan out slightly so the summoned grubs don't perfectly overlap.

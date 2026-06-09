@@ -99,6 +99,95 @@ export const WAVES: readonly Wave[] = [
       { enemy: EnemyType.Snail, count: 4, intervalS: 1.5, startDelayS: 3.0 },
     ],
   },
+  // Wave 11 — density spike, fast enemies (§6.3): 20 Grub@0.4 + 8 Flutter + 6 Shade.
+  {
+    groups: [
+      { enemy: EnemyType.Grub, count: 20, intervalS: 0.4, startDelayS: 0 },
+      { enemy: EnemyType.Flutter, count: 8, intervalS: 0.7, startDelayS: 1.0 },
+      { enemy: EnemyType.Shade, count: 6, intervalS: 0.9, startDelayS: 2.0 },
+    ],
+  },
+  // Wave 12 — faster spike (§6.3): 18 Grub@0.35 + 10 Flutter@0.6 + 8 Shade@0.8.
+  {
+    groups: [
+      { enemy: EnemyType.Grub, count: 18, intervalS: 0.35, startDelayS: 0 },
+      { enemy: EnemyType.Flutter, count: 10, intervalS: 0.6, startDelayS: 1.0 },
+      { enemy: EnemyType.Shade, count: 8, intervalS: 0.8, startDelayS: 2.0 },
+    ],
+  },
+  // Wave 13 — dense + fast (§6.3): 24 Grub@0.3 + 8 Flutter@0.5 + 6 Snail@0.7.
+  {
+    groups: [
+      { enemy: EnemyType.Grub, count: 24, intervalS: 0.3, startDelayS: 0 },
+      { enemy: EnemyType.Flutter, count: 8, intervalS: 0.5, startDelayS: 1.0 },
+      { enemy: EnemyType.Snail, count: 6, intervalS: 0.7, startDelayS: 2.0 },
+    ],
+  },
+  // Wave 14 — Plushy-heavy / regen counter (§6.3): 12 Grub + 6 Plushy + 4 Snail.
+  {
+    groups: [
+      { enemy: EnemyType.Grub, count: 12, intervalS: 0.5, startDelayS: 0 },
+      { enemy: EnemyType.Plushy, count: 6, intervalS: 1.0, startDelayS: 1.0 },
+      { enemy: EnemyType.Snail, count: 4, intervalS: 0.8, startDelayS: 2.5 },
+    ],
+  },
+  // Wave 15 — 👑 CANDY KING + Splitters (§6.3): CK x1 + 6 Splitter + 8 Grub.
+  {
+    groups: [
+      { enemy: EnemyType.CandyKing, count: 1, intervalS: 1.0, startDelayS: 0 },
+      { enemy: EnemyType.Splitter, count: 6, intervalS: 1.3, startDelayS: 1.0 },
+      { enemy: EnemyType.Grub, count: 8, intervalS: 0.9, startDelayS: 2.0 },
+    ],
+  },
+  // Wave 16 — hardcore mix (§6.3): all basics simultaneously.
+  {
+    groups: [
+      { enemy: EnemyType.Grub, count: 16, intervalS: 0.4, startDelayS: 0 },
+      { enemy: EnemyType.Snail, count: 6, intervalS: 0.9, startDelayS: 1.0 },
+      { enemy: EnemyType.Flutter, count: 6, intervalS: 0.7, startDelayS: 1.5 },
+      { enemy: EnemyType.Shade, count: 4, intervalS: 0.9, startDelayS: 2.0 },
+      { enemy: EnemyType.Plushy, count: 2, intervalS: 1.5, startDelayS: 3.0 },
+    ],
+  },
+  // Wave 17 — hardcore mix (§6.3): +Splitters.
+  {
+    groups: [
+      { enemy: EnemyType.Grub, count: 14, intervalS: 0.35, startDelayS: 0 },
+      { enemy: EnemyType.Snail, count: 6, intervalS: 0.8, startDelayS: 1.0 },
+      { enemy: EnemyType.Flutter, count: 8, intervalS: 0.6, startDelayS: 1.5 },
+      { enemy: EnemyType.Shade, count: 6, intervalS: 0.8, startDelayS: 2.0 },
+      { enemy: EnemyType.Splitter, count: 3, intervalS: 1.4, startDelayS: 3.0 },
+    ],
+  },
+  // Wave 18 — hardcore mix (§6.3): +Plushies.
+  {
+    groups: [
+      { enemy: EnemyType.Grub, count: 18, intervalS: 0.35, startDelayS: 0 },
+      { enemy: EnemyType.Snail, count: 8, intervalS: 0.75, startDelayS: 1.0 },
+      { enemy: EnemyType.Flutter, count: 6, intervalS: 0.6, startDelayS: 1.5 },
+      { enemy: EnemyType.Shade, count: 6, intervalS: 0.8, startDelayS: 2.0 },
+      { enemy: EnemyType.Plushy, count: 4, intervalS: 1.3, startDelayS: 3.0 },
+    ],
+  },
+  // Wave 19 — hardcore finale before the dragon (§6.3): everything.
+  {
+    groups: [
+      { enemy: EnemyType.Grub, count: 20, intervalS: 0.3, startDelayS: 0 },
+      { enemy: EnemyType.Snail, count: 8, intervalS: 0.7, startDelayS: 1.0 },
+      { enemy: EnemyType.Flutter, count: 8, intervalS: 0.55, startDelayS: 1.5 },
+      { enemy: EnemyType.Shade, count: 8, intervalS: 0.7, startDelayS: 2.0 },
+      { enemy: EnemyType.Splitter, count: 4, intervalS: 1.3, startDelayS: 3.0 },
+      { enemy: EnemyType.Plushy, count: 3, intervalS: 1.4, startDelayS: 4.0 },
+    ],
+  },
+  // Wave 20 — 🐲 NEON DRAGON, final boss (SPEC §6.2) + light support. Win on clear.
+  {
+    groups: [
+      { enemy: EnemyType.NeonDragon, count: 1, intervalS: 1.0, startDelayS: 0 },
+      { enemy: EnemyType.Flutter, count: 6, intervalS: 1.0, startDelayS: 2.0 },
+      { enemy: EnemyType.Grub, count: 6, intervalS: 1.0, startDelayS: 3.0 },
+    ],
+  },
 ];
 
 /** Prep gap (seconds) between a wave clearing and the next wave starting (§6.3). */

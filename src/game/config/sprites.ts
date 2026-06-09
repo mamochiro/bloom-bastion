@@ -38,6 +38,7 @@ export const SPRITE = {
   "enemy-splitter": 104,
   "enemy-shade": 105,
   "enemy-plushy": 106,
+  "enemy-neon-dragon": 107,
   // ── projectiles (200–299) ──
   "projectile-petal": 200,
   // ── tiles (300–399) ──
@@ -68,6 +69,7 @@ export const ASSET_PATH: Readonly<Record<SpriteKey, string>> = {
   "enemy-splitter": "/sprites/enemy-splitter.svg",
   "enemy-shade": "/sprites/enemy-shade.svg",
   "enemy-plushy": "/sprites/enemy-plushy.svg",
+  "enemy-neon-dragon": "/sprites/enemy-neon-dragon.svg",
   "projectile-petal": "/sprites/projectile-petal.svg",
   "tile-grass": "/sprites/tile-grass.svg",
   "tile-path": "/sprites/tile-path.svg",

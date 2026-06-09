@@ -32,7 +32,7 @@ import { getDifficultyMods } from "../config/difficulty";
 import { ENEMY_BY_TYPE, ENEMY_FLAGS } from "../config/enemies";
 import { isSimPaused } from "../ecs/game-state";
 import { loseLives } from "../ecs/resources";
-import { releaseEnemy } from "../entities/create-enemy";
+import { releaseEnemy, spawnEnemy } from "../entities/create-enemy";
 import { CELL } from "../map/coords";
 
 /**
@@ -41,6 +41,19 @@ import { CELL } from "../map/coords";
  * default (NOT-LOCKED). Bosses may cost more once content lands.
  */
 const LIFE_COST_PER_LEAK = 1;
+
+// --- Recurring boss summon (Neon Dragon P1, SPEC §6.2) ---------------------
+// One boss is alive at a time. The timer is keyed by the boss eid so a new boss
+// re-arms automatically; restart clears it. gameTime-based — zero per-frame
+// alloc (a timestamp compare); the actual summon is a cold ~every-5s event.
+let _summonBossEid = -1;
+let _nextSummonAt = 0;
+
+/** Reset the boss summon timer (startGame / restart / tests). */
+export function resetBossSummon(): void {
+  _summonBossEid = -1;
+  _nextSummonAt = 0;
+}
 
 export const PathFollowSystem: System = (world: World, dt: number): World => {
   if (isSimPaused()) return world; // frozen on win/lose
@@ -85,6 +98,22 @@ export const PathFollowSystem: System = (world: World, dt: number): World => {
     if (cfg?.regenPerSec && Health.current[eid] > 0 && Health.current[eid] < Health.max[eid]) {
       const healed = Health.current[eid] + cfg.regenPerSec * dt;
       Health.current[eid] = healed < Health.max[eid] ? healed : Health.max[eid];
+    }
+
+    // Recurring summon (Neon Dragon P1, SPEC §6.2): summon `type` every `everyS`
+    // while HP is above the threshold; stops in P2. Re-arms for a new boss eid.
+    const summon = cfg?.periodicSummon;
+    if (summon) {
+      if (_summonBossEid !== eid) {
+        _summonBossEid = eid;
+        _nextSummonAt = now + summon.everyS; // first summon one interval after sighting
+      }
+      const max = Health.max[eid];
+      const hpFrac = max > 0 ? Health.current[eid] / max : 0;
+      if (hpFrac > summon.whileHpFracAbove && now >= _nextSummonAt) {
+        spawnEnemy(world, summon.type, Position.x[eid] - 6, Position.y[eid]);
+        _nextSummonAt += summon.everyS;
+      }
     }
 
     // Boss phase speed (SPEC §6.2): highest fired phase's multiplier (else 1×).

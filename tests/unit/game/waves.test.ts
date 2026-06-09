@@ -111,8 +111,8 @@ describe("wave system", () => {
     expect(Health.current[grub]).toBe(60 - 15); // 45 (no armor)
   });
 
-  it("the live wave table has all 10 defined waves", () => {
-    expect(SpawnSystem.TOTAL_WAVES).toBe(10);
+  it("the live wave table has all 20 defined waves", () => {
+    expect(SpawnSystem.TOTAL_WAVES).toBe(20);
   });
 
   it("restart returns the live run to wave 1", () => {
