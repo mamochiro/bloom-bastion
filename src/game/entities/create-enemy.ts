@@ -63,6 +63,9 @@ export function spawnEnemy(world: World, typeId: number, x: number, y: number): 
   // tint is FX-ONLY (locked): 0 → native SVG colours; non-zero → Pixi multiply
   // for transient hit-flash / status, written later by DamageSystem. Base = 0.
   Renderable.tint[eid] = 0;
+  // baseTint is the PERSISTENT FX tint (Neon Dragon P2 enrage). Reset to 0 on
+  // (pooled) spawn so a recycled eid carries no stale enrage red.
+  Renderable.baseTint[eid] = 0;
 
   addComponent(world, Enemy, eid);
   Enemy.typeId[eid] = typeId;

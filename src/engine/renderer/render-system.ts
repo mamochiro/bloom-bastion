@@ -1,5 +1,6 @@
 import { enterQuery, exitQuery } from "bitecs";
 import { Container, Sprite as PixiSprite } from "pixi.js";
+import { gameTime } from "../clock";
 import { Position, Renderable, type World, renderableQuery } from "../ecs/world";
 import type { System } from "../loop";
 import { getAppOrNull, getSpriteTexture } from "./pixi-app";
@@ -45,6 +46,30 @@ export const Sprite = {
 
 /** Towers (ids < 100) are grounded; enemies/projectiles are centred. */
 const TOWER_ID_MAX = 99;
+/** Enemy id band (100–199) — enemies bob; everything else pulses. */
+const ENEMY_ID_MIN = 100;
+const ENEMY_ID_MAX = 199;
+
+// --- Idle motion (code-driven "life"; the designer's bob/pulse keyframes were
+// deferred). Subtle, TIME-BASED, RENDER-ONLY (never mutates Position), and
+// de-synced per eid so a crowd doesn't pulse in lockstep. Pure scalar math →
+// zero alloc. Exported for unit tests (no stage needed).
+const BOB_AMP = 3; // px vertical bob (enemies)
+const BOB_FREQ = 2.2; // rad/s
+const BOB_PHASE = 0.7; // per-eid desync
+const PULSE_AMP = 0.045; // ±4.5% scale pulse (towers/projectiles → glow feel)
+const PULSE_FREQ = 3.1; // rad/s
+const PULSE_PHASE = 0.9;
+
+/** Vertical bob offset (px) added to a sprite's y. Bounded to ±{@link BOB_AMP}. */
+export function idleBobOffsetY(eid: number, t: number): number {
+  return Math.sin(t * BOB_FREQ + eid * BOB_PHASE) * BOB_AMP;
+}
+
+/** Subtle scale multiplier near 1 for a glow-pulse feel. */
+export function idlePulseScale(eid: number, t: number): number {
+  return 1 + Math.sin(t * PULSE_FREQ + eid * PULSE_PHASE) * PULSE_AMP;
+}
 
 const onEnter = enterQuery(renderableQuery);
 const onExit = exitQuery(renderableQuery);
@@ -90,17 +115,30 @@ export const RenderSystem: System = (world: World, _dt: number): World => {
     }
   }
 
-  // Steady state: update transform + FX tint only. Zero allocation.
+  // Steady state: transform (+ subtle idle motion) + tint. Zero allocation.
+  const now = gameTime();
   const ents = renderableQuery(world);
   for (let i = 0; i < ents.length; i++) {
     const eid = ents[i];
     const s = sprites.get(eid);
     if (!s) continue;
-    s.x = Position.x[eid];
-    s.y = Position.y[eid];
-    const t = Renderable.tint[eid];
-    // FX-only: 0 → native sprite colours; non-zero → multiply for hit-flash/glow.
-    s.tint = t === 0 ? 0xffffff : t;
+    const id = Renderable.spriteId[eid];
+    const px = Position.x[eid];
+    const py = Position.y[eid];
+    // Idle motion: render-only offset on top of Position (never mutated).
+    if (id >= ENEMY_ID_MIN && id <= ENEMY_ID_MAX) {
+      s.x = px;
+      s.y = py + idleBobOffsetY(eid, now); // enemies: gentle vertical bob
+    } else {
+      s.x = px;
+      s.y = py;
+      s.scale.set(idlePulseScale(eid, now)); // towers/projectiles: glow pulse
+    }
+    // Tint precedence: flash overlay while flashing, else persistent baseTint.
+    const flashing = Renderable.flashUntil[eid] > 0 && now < Renderable.flashUntil[eid];
+    const col = flashing ? Renderable.tint[eid] : Renderable.baseTint[eid];
+    // 0 → native sprite colours (white = identity multiply); non-zero → tint FX.
+    s.tint = col === 0 ? 0xffffff : col;
   }
 
   return world;

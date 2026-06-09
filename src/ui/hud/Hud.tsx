@@ -3,6 +3,7 @@ import { requestRestart } from "../../store/commands";
 import { useGameStatus, useGold, useLives, useWave } from "../../store/game-snapshot";
 import { BossBar } from "./BossBar";
 import { SkillBar } from "./SkillBar";
+import { SkillFlash } from "./SkillFlash";
 import { StartScreen } from "./StartScreen";
 import { TowerPicker } from "./TowerPicker";
 
@@ -27,6 +28,8 @@ export function Hud() {
   const status = useGameStatus();
   return (
     <>
+      {/* Decorative VFX first so the interactive HUD paints above it. */}
+      <SkillFlash />
       <StatusStripView gold={gold} lives={lives} wave={wave} />
       <TowerPicker />
       {status === "playing" && <SkillBar />}

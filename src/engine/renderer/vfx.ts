@@ -209,13 +209,14 @@ export const AnimationSystem: System = (world: World, dt: number): World => {
     i++;
   }
 
-  // Hit-flash decay: clear transient tint once its window elapses.
+  // Hit-flash decay: once the window elapses, restore the PERSISTENT baseTint
+  // (NOT hard 0) so an enrage/boss tint survives the flash.
   const now = gameTime();
   const ents = renderableQuery(world);
   for (let i = 0; i < ents.length; i++) {
     const eid = ents[i];
     if (Renderable.flashUntil[eid] > 0 && now >= Renderable.flashUntil[eid]) {
-      Renderable.tint[eid] = 0;
+      Renderable.tint[eid] = Renderable.baseTint[eid];
       Renderable.flashUntil[eid] = 0;
     }
   }

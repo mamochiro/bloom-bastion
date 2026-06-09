@@ -23,6 +23,8 @@ export const TINT = {
   shadeCore: 0x8c4dff,
   /** --gold #ffd700 (gold reward text, Meteor impact — FX). */
   gold: 0xffd700,
+  /** --danger #ff4d6d (Neon Dragon P2 enrage tint — FX). */
+  danger: 0xff4d6d,
 } as const;
 
 export type Tint = (typeof TINT)[keyof typeof TINT];

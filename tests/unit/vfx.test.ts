@@ -77,4 +77,24 @@ describe("hit-flash", () => {
     expect(Renderable.tint[eid]).toBe(0);
     expect(Renderable.flashUntil[eid]).toBe(0);
   });
+
+  it("restores the persistent baseTint after a flash (not hard 0)", () => {
+    resetClock();
+    const eid = addEntity(world);
+    addComponent(world, Position, eid);
+    addComponent(world, Renderable, eid);
+    Renderable.baseTint[eid] = 0x123456; // e.g. boss enrage tint
+    Renderable.tint[eid] = 0;
+    Renderable.flashUntil[eid] = 0;
+
+    flashEntity(eid); // overrides tint with the bright flash colour
+    expect(Renderable.tint[eid]).not.toBe(0x123456);
+
+    frameStep(0.05, false);
+    frameStep(0.05, false);
+    frameStep(0.05, false); // gameTime 0.15 ≥ 0.1 → flash expires
+
+    expect(Renderable.tint[eid]).toBe(0x123456); // back to baseTint, survives flash
+    expect(Renderable.flashUntil[eid]).toBe(0);
+  });
 });

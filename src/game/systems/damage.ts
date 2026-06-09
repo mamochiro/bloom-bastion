@@ -16,6 +16,7 @@ import {
   Health,
   Position,
   Projectile,
+  Renderable,
   Status,
   type World,
   enemyQuery,
@@ -57,8 +58,11 @@ function checkBossPhases(world: World, eid: number): void {
     if (phase.slowImmune) Enemy.flags[eid] |= ENEMY_FLAGS.SlowImmune;
     if (phase.setFlying) {
       Enemy.flags[eid] |= ENEMY_FLAGS.Flying; // Neon Dragon P2 takes flight
-      // One-time enrage burst (no PERSISTENT tint — that would fight the hit-flash).
+      // One-time enrage burst + PERSISTENT enraged-red base tint (the berserk
+      // 'tell'). baseTint survives the transient hit-flash — the flash briefly
+      // overrides, then returns to this red (not 0). Fire-once via the phase flag.
       spawnBurst(Position.x[eid], Position.y[eid], TINT.shadeCore, 40);
+      Renderable.baseTint[eid] = TINT.danger;
     }
     if (phase.summonGrubs) {
       for (let k = 0; k < phase.summonGrubs; k++) {

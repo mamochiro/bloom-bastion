@@ -2,7 +2,7 @@ import { advanceGameClock, resetGameClock } from "./clock";
 import type { World } from "./ecs/world";
 import { world } from "./ecs/world";
 import { RenderSystem } from "./renderer/render-system";
-import { AnimationSystem } from "./renderer/vfx";
+import { AnimationSystem, setVfxQuality } from "./renderer/vfx";
 
 // gameTime lives in clock.ts (dependency-free, breaks the loop↔vfx cycle); we
 // re-export it here so existing `import { gameTime } from ".../loop"` keeps working.
@@ -105,6 +105,51 @@ let frame = 0;
 /** The pipeline the running loop ticks. Swapped in by {@link startLoop}. */
 let activeSystems: readonly System[] = SYSTEMS;
 
+// --- Adaptive quality (SPEC §4.5) ------------------------------------------
+// Rolling ~1s average FPS → particle-count scale, with hysteresis so it can't
+// thrash at a threshold boundary. Zero-alloc: a bucketed time/frame accumulator
+// (no per-frame arrays). NOTE: §4.5 also degrades bloom/chromatic; no such
+// shader exists yet, so this scales PARTICLE COUNT only (via setVfxQuality).
+const FPS_WINDOW = 1.0; // seconds per averaging bucket
+const QUALITY_HYSTERESIS = 3; // fps margin around each threshold
+// Best → worst; `min` is the avg-fps floor to remain at this level (SPEC §4.5).
+const QUALITY_LEVELS = [
+  { scale: 1.0, min: 55 }, // all effects
+  { scale: 0.5, min: 45 }, // particles −50%
+  { scale: 0.25, min: 35 }, // particles −75%
+  { scale: 0.2, min: 0 }, // minimum mode
+] as const;
+let qualityLevel = 0;
+let fpsWindowTime = 0;
+let fpsWindowFrames = 0;
+let avgFps = 60; // optimistic start
+
+/** Current adaptive-quality scale (0.2..1.0). SPEC §4.5; for a future Settings UI. */
+export function getQuality(): number {
+  return QUALITY_LEVELS[qualityLevel].scale;
+}
+
+/** Rolling ~1s average FPS (diagnostics / QA). */
+export function getAverageFps(): number {
+  return avgFps;
+}
+
+/** Map an average FPS to a quality level (hysteresis-guarded) and push the scale. */
+function updateQuality(fps: number): void {
+  // Downgrade while below the current floor (minus margin); jump as far as needed.
+  while (
+    qualityLevel < QUALITY_LEVELS.length - 1 &&
+    fps < QUALITY_LEVELS[qualityLevel].min - QUALITY_HYSTERESIS
+  ) {
+    qualityLevel++;
+  }
+  // Upgrade only when comfortably above the better level's floor (plus margin).
+  while (qualityLevel > 0 && fps >= QUALITY_LEVELS[qualityLevel - 1].min + QUALITY_HYSTERESIS) {
+    qualityLevel--;
+  }
+  setVfxQuality(QUALITY_LEVELS[qualityLevel].scale);
+}
+
 /** Monotonic frame counter (incremented per ticked frame). For tests/e2e. */
 export function getFrameCount(): number {
   return frame;
@@ -126,6 +171,17 @@ export function frameStep(rawDt: number, isPaused: boolean): number {
   advanceGameClock(dt);
   runSystems(world, dt, activeSystems);
   frame++;
+  // Adaptive quality (SPEC §4.5): accumulate a ~1s FPS bucket, then re-evaluate.
+  if (dt > 0) {
+    fpsWindowTime += dt;
+    fpsWindowFrames++;
+    if (fpsWindowTime >= FPS_WINDOW) {
+      avgFps = fpsWindowFrames / fpsWindowTime;
+      fpsWindowTime = 0;
+      fpsWindowFrames = 0;
+      updateQuality(avgFps);
+    }
+  }
   return dt;
 }
 
@@ -154,6 +210,12 @@ export function startLoop(systems: readonly System[] = SYSTEMS): void {
   running = true;
   activeSystems = systems;
   resetGameClock(); // fresh game clock per run (SPEC §4.6 game time)
+  // Fresh adaptive-quality state (SPEC §4.5): start optimistic at full quality.
+  qualityLevel = 0;
+  avgFps = 60;
+  fpsWindowTime = 0;
+  fpsWindowFrames = 0;
+  setVfxQuality(1);
   paused = typeof document !== "undefined" && document.hidden;
   lastTime = performance.now();
   document.addEventListener("visibilitychange", onVisibilityChange);

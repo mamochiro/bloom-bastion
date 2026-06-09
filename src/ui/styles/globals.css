@@ -42,3 +42,25 @@ body {
 #root > * {
   pointer-events: auto;
 }
+
+/*
+ * Skill-activation screen flash (decorative VFX). Full-screen edge vignette in
+ * the firing skill's accent (passed as the `--flash` custom property), fading
+ * out via the `skill-flash` keyframe. Never interactive (pointer-events set
+ * inline on the element). Softened under reduced-motion for photosensitivity.
+ */
+.skill-flash {
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 32%,
+    color-mix(in srgb, var(--flash, var(--storm-mid)) 60%, transparent) 108%
+  );
+  animation: skill-flash 260ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-flash {
+    animation-duration: 90ms;
+    opacity: 0.18;
+  }
+}

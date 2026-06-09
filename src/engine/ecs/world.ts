@@ -30,14 +30,19 @@ export const Velocity = defineComponent({ vx: Types.f32, vy: Types.f32 });
 export const Health = defineComponent({ current: Types.f32, max: Types.f32 });
 
 /**
- * Visual binding: atlas sprite id + tint (0xRRGGBB packed). `tint` is FX-ONLY:
- * base is 0 (native sprite colours); a transient hit-flash sets it non-zero
- * until `flashUntil` (game seconds), after which AnimationSystem clears it.
+ * Visual binding: atlas sprite id + tint.
+ * - `tint` (0xRRGGBB) is the TRANSIENT FX overlay: a hit-flash sets it bright
+ *   until `flashUntil` (game seconds); AnimationSystem then restores it to
+ *   `baseTint`.
+ * - `baseTint` is the PERSISTENT tint (0 = native sprite colours) — e.g. a
+ *   boss enrage colour — so it survives a hit-flash. RenderSystem shows the
+ *   flash tint while flashing, else `baseTint`.
  */
 export const Renderable = defineComponent({
   spriteId: Types.ui16,
   tint: Types.ui32,
   flashUntil: Types.f32,
+  baseTint: Types.f32,
 });
 
 /** Tower instance: type, upgrade level, fire cooldown (s), current target eid. */
