@@ -22,7 +22,7 @@ import {
 } from "../../engine/ecs/world";
 import { enemyPool } from "../../engine/pool/pools";
 import { getDifficultyMods } from "../config/difficulty";
-import { ENEMY_BY_TYPE } from "../config/enemies";
+import { ENEMY_BY_TYPE, ENEMY_FLAGS } from "../config/enemies";
 import { spriteId } from "../config/sprites";
 
 /**
@@ -67,7 +67,8 @@ export function spawnEnemy(world: World, typeId: number, x: number, y: number): 
   addComponent(world, Enemy, eid);
   Enemy.typeId[eid] = typeId;
   Enemy.pathProgress[eid] = 0;
-  Enemy.flags[eid] = 0;
+  // Reset flags (pooled-reuse safe); set Flying for flying enemies (SPEC §6.2).
+  Enemy.flags[eid] = cfg.flying ? ENEMY_FLAGS.Flying : 0;
 
   // Status timers — reset so a recycled eid carries no stale slow/stun/dot.
   addComponent(world, Status, eid);

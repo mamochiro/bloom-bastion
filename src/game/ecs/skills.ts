@@ -12,9 +12,10 @@
  * Effects only — skill VFX (meteor impact / freeze flash / gold sparkle) are
  * DEFERRED to a juice slice.
  */
-import { Position, type World, enemyQuery } from "../../engine/ecs/world";
+import { Enemy, Position, type World, enemyQuery } from "../../engine/ecs/world";
 import { Status } from "../../engine/ecs/world";
 import { gameTime } from "../../engine/loop";
+import { ENEMY_FLAGS } from "../config/enemies";
 import { SKILLS, type SkillType } from "../config/skills";
 import { CELL } from "../map/coords";
 import { applyDamage } from "./apply-damage";
@@ -83,6 +84,9 @@ function meteorStrike(
   const enemies = enemyQuery(world);
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
+    // Flying enemies (Flutter) are immune to AoE / ground-splash (SPEC §6.2).
+    // Future splash towers (Sugar Cannon, Bubbler) must apply the SAME guard.
+    if ((Enemy.flags[e] & ENEMY_FLAGS.Flying) !== 0) continue;
     const dx = Position.x[e] - x;
     const dy = Position.y[e] - y;
     if (dx * dx + dy * dy <= radiusSq) applyDamage(e, aoeDamage);

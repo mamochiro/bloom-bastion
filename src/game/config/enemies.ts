@@ -26,6 +26,8 @@ export const ENEMY_FLAGS = {
   Phase2Done: 1 << 1,
   /** Enemy ignores slow (Candy King berserk). */
   SlowImmune: 1 << 2,
+  /** Flying (Flutter) — immune to AoE / ground-splash damage (SPEC §6.2). */
+  Flying: 1 << 3,
 } as const;
 
 /** A boss HP-threshold phase (SPEC §6.2 boss phases). */
@@ -38,6 +40,26 @@ export interface BossPhase {
   readonly speedMult?: number;
   /** When true, the boss becomes immune to slow once this phase fires. */
   readonly slowImmune?: boolean;
+}
+
+/** Numeric `Enemy.typeId` (ui8) — the index stored in the ECS component. */
+export const EnemyType = {
+  Grub: 0,
+  Snail: 1,
+  CandyKing: 2,
+  Flutter: 3,
+  Splitter: 4,
+  MiniSplitter: 5,
+} as const;
+
+export type EnemyTypeId = (typeof EnemyType)[keyof typeof EnemyType];
+
+/** Spawn-on-death burst (SPEC §6.2 Splitter). */
+export interface SplitEffect {
+  /** Enemy type spawned on death. */
+  readonly type: EnemyTypeId;
+  /** How many to spawn. */
+  readonly count: number;
 }
 
 export interface EnemyConfig {
@@ -62,6 +84,10 @@ export interface EnemyConfig {
   readonly isBoss?: boolean;
   /** HP-threshold phases, ordered high→low HP (SPEC §6.2). */
   readonly phases?: readonly BossPhase[];
+  /** Flying (Flutter) — immune to AoE / ground-splash; spawnEnemy sets the flag. */
+  readonly flying?: boolean;
+  /** Spawn-on-death burst (Splitter → mini-splitters). */
+  readonly onDeathSplit?: SplitEffect;
 }
 
 /** 🐛 Grub — SPEC §6.2: HP 60, Speed 1.0, Reward 8g, no special. */
@@ -104,20 +130,50 @@ const CANDY_KING: EnemyConfig = {
   ],
 };
 
-/** Numeric `Enemy.typeId` (ui8) — the index stored in the ECS component. */
-export const EnemyType = {
-  Grub: 0,
-  Snail: 1,
-  CandyKing: 2,
-} as const;
+/** 🦋 Flutter — SPEC §6.2: HP 50, Speed 2.0, Reward 12g, Flying (splash-immune). */
+const FLUTTER: EnemyConfig = {
+  id: "flutter",
+  name: "Flutter",
+  hp: 50,
+  speed: 2.0,
+  reward: 12,
+  sprite: "enemy-flutter",
+  flying: true,
+};
 
-export type EnemyTypeId = (typeof EnemyType)[keyof typeof EnemyType];
+/** 🐙 Splitter — SPEC §6.2: HP 160, Speed 1.0, Reward 22g, splits into 2 minis on death. */
+const SPLITTER: EnemyConfig = {
+  id: "splitter",
+  name: "Splitter",
+  hp: 160,
+  speed: 1.0,
+  reward: 22,
+  sprite: "enemy-splitter",
+  onDeathSplit: { type: EnemyType.MiniSplitter, count: 2 },
+};
+
+/**
+ * 🐙 Mini-Splitter — the spawn from a dead Splitter. SPEC §6.2 gives no mini
+ * stats, so these are TUNED (FLAGGED): HP 40, Speed 1.2, Reward 8g. REUSES the
+ * Splitter sprite (id 104). NO onDeathSplit → no infinite recursion.
+ */
+const MINI_SPLITTER: EnemyConfig = {
+  id: "mini_splitter",
+  name: "Mini-Splitter",
+  hp: 40,
+  speed: 1.2,
+  reward: 8,
+  sprite: "enemy-splitter",
+};
 
 /** Lookup by string id. */
 export const ENEMIES: Readonly<Record<string, EnemyConfig>> = {
   grub: GRUB,
   snail: SNAIL,
   candy_king: CANDY_KING,
+  flutter: FLUTTER,
+  splitter: SPLITTER,
+  mini_splitter: MINI_SPLITTER,
 };
 
 /** Lookup by numeric `Enemy.typeId` (what factories/systems carry). */
@@ -125,4 +181,7 @@ export const ENEMY_BY_TYPE: Readonly<Record<number, EnemyConfig>> = {
   [EnemyType.Grub]: GRUB,
   [EnemyType.Snail]: SNAIL,
   [EnemyType.CandyKing]: CANDY_KING,
+  [EnemyType.Flutter]: FLUTTER,
+  [EnemyType.Splitter]: SPLITTER,
+  [EnemyType.MiniSplitter]: MINI_SPLITTER,
 };

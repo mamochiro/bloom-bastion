@@ -9,11 +9,10 @@
  * Waves 1–3 are the §6.3 table verbatim. Waves 4–10 are a difficulty curve of
  * Grub/Snail + Candy King mini-boss at waves 5 & 10 (SPEC §6.2/§6.3).
  *
- * FLAGGED — DEFERRED: §6.3 calls for Flutter@4 and Splitter@9; those two enemies
- * + their flying/split mechanics are follow-up slices. Until then waves 4/6-9
- * ramp Grub/Snail density instead. The per-wave counts/intervals for 4–10 are
- * TUNED (§6.3 gives only a prose plan, no per-wave numbers), not §6.3-exact.
- * Wave-clear bonus is derived per §6.5 (`25 + 5*waveNumber`), not stored.
+ * Wave 4 introduces Flutter and wave 9 introduces Splitter (§6.3-faithful). The
+ * per-wave counts/intervals for 4–10 are TUNED (§6.3 gives only a prose plan, no
+ * per-wave numbers), not §6.3-exact. Wave-clear bonus is derived per §6.5
+ * (`25 + 5*waveNumber`), not stored.
  */
 import { EnemyType, type EnemyTypeId } from "./enemies";
 
@@ -45,11 +44,11 @@ export const WAVES: readonly Wave[] = [
       { enemy: EnemyType.Snail, count: 3, intervalS: 1.5, startDelayS: 2.0 },
     ],
   },
-  // Wave 4 — density ramp (Flutter DEFERRED): 14 Grubs @0.6s + 4 Snails @1.2s @+1.5.
+  // Wave 4 — INTRODUCE Flutter (SPEC §6.3): 10 Grubs @0.6s + 6 fast fliers @0.9s @+1.
   {
     groups: [
-      { enemy: EnemyType.Grub, count: 14, intervalS: 0.6, startDelayS: 0 },
-      { enemy: EnemyType.Snail, count: 4, intervalS: 1.2, startDelayS: 1.5 },
+      { enemy: EnemyType.Grub, count: 10, intervalS: 0.6, startDelayS: 0 },
+      { enemy: EnemyType.Flutter, count: 6, intervalS: 0.9, startDelayS: 1.0 },
     ],
   },
   // Wave 5 — 👑 CANDY KING mini-boss (SPEC §6.2) + 6 support Grubs trailing.
@@ -80,11 +79,12 @@ export const WAVES: readonly Wave[] = [
       { enemy: EnemyType.Snail, count: 6, intervalS: 0.8, startDelayS: 1.5 },
     ],
   },
-  // Wave 9 — dense mix (Splitter DEFERRED): 14 Grubs @0.4s + 8 Snails @0.7s @+1.
+  // Wave 9 — INTRODUCE Splitter (SPEC §6.3): Grub/Snail ramp + 4 Splitters @1.4s @+2.
   {
     groups: [
-      { enemy: EnemyType.Grub, count: 14, intervalS: 0.4, startDelayS: 0 },
-      { enemy: EnemyType.Snail, count: 8, intervalS: 0.7, startDelayS: 1.0 },
+      { enemy: EnemyType.Grub, count: 12, intervalS: 0.45, startDelayS: 0 },
+      { enemy: EnemyType.Snail, count: 6, intervalS: 0.8, startDelayS: 1.0 },
+      { enemy: EnemyType.Splitter, count: 4, intervalS: 1.4, startDelayS: 2.0 },
     ],
   },
   // Wave 10 — 👑 CANDY KING (SPEC §6.2) + tougher support: 8 Grubs + 4 Snails.

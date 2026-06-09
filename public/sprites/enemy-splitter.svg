@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Bloom Bastion — Splitter enemy (squishy octopus-blob; splits into 2 minis on death — §6.2: Special tier).
+       MiniSplitter REUSES this art at the same id (104), drawn smaller by the engine.
+       Source: design-assets/sprites_enemies.jsx EnemySplitter().
+       Tokens resolved to hex (sprites are not CSS-var themed at runtime):
+       body success #44e08a + bubble-light #c6fff0 sheen; eyes #fff; pupils/seam navy literal #0d3a26.
+       Snail-sized blob — fills the box like the snail. Dotted vertical line = the split tell.
+       Body carries a static green glow (feGaussianBlur); bob/waddle CSS keyframes DEFERRED (juice slice). -->
+  <defs>
+    <filter id="splitter-body-glow" x="-55%" y="-55%" width="210%" height="210%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="b"/>
+      <feFlood flood-color="#44e08a" flood-opacity="0.72"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <ellipse cx="50" cy="88" rx="26" ry="6" fill="#000" opacity="0.25"/>
+  <!-- tentacles -->
+  <path d="M30 64 Q27 80 26 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M40 64 Q37 80 44 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M50 64 Q47 80 46 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M60 64 Q57 80 64 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M70 64 Q67 80 66 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <g filter="url(#splitter-body-glow)">
+    <!-- head -->
+    <circle cx="50" cy="48" r="24" fill="#44e08a"/>
+    <circle cx="50" cy="48" r="24" fill="#c6fff0" opacity="0.25"/>
+    <ellipse cx="42" cy="44" rx="5" ry="6" fill="#fff"/>
+    <ellipse cx="58" cy="44" rx="5" ry="6" fill="#fff"/>
+    <circle cx="43" cy="45" r="2.6" fill="#0d3a26"/>
+    <circle cx="59" cy="45" r="2.6" fill="#0d3a26"/>
+    <!-- split hint: dotted division line -->
+    <line x1="50" y1="26" x2="50" y2="70" stroke="#0d3a26" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.5"/>
+    <path d="M44 56 Q50 60 56 56" stroke="#0d3a26" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

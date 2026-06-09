@@ -92,13 +92,14 @@ place towers (**Blossom** slow 50g / **Stormcloud** chain-lightning 100g) → fi
 green (Vitest 130/130), ~235KB gz. Pipeline 9/10 systems real (only Animation,
 slot 8, is a stub). Content: start screen + 3 difficulties, 2 towers, 2 enemies, 3 waves.
 
-Active skills (§6.4): all 3 reachable — **Meteor** (tap-to-aim 200 AoE), **Freeze**
-(unlock wave 5), **Gold Rush** (unlock wave 10). **Candy King mini-boss** (§6.2) at
-waves 5 & 10 with a boss-phase system (summon + berserk + slow-immune). 10 waves,
-3 enemies, 2 towers. `bun run check` green (Vitest 172/172), ~237KB gz.
+Active skills (§6.4): all 3 reachable — **Meteor**, **Freeze** (wave 5), **Gold
+Rush** (wave 10). **5 enemies**: Grub, Snail (armor), **Flutter** (flying — dodges
+AoE), **Splitter** (splits on death → 2 minis), **Candy King** boss (waves 5/10,
+phase system). **Waves 1–10 are §6.3-faithful.** 2 towers. `bun run check` green
+(Vitest 178/178), ~237.3KB gz.
 
-**Next up:** Flutter + Splitter enemies (§6.3 waves 4/9) · waves 11–20 + Neon
-Dragon final boss · towers 3–6 + L2/L3 · enemy-palette token ADR · VFX juice pass.
+**Next up:** Shade + Plushy enemies · waves 11–20 + Neon Dragon final boss · towers
+3–6 + L2/L3 · enemy-palette token ADR · VFX juice pass.
 **SPEC clarifications flagged:** Stormcloud chain radius (2.5 tiles); Meteor damage
 raw-vs-armor (§6.4 "200 DMG", applied armor-adjusted).
 

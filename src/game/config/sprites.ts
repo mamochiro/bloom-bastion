@@ -34,6 +34,8 @@ export const SPRITE = {
   "enemy-grub": 100,
   "enemy-snail": 101,
   "enemy-candyking": 102,
+  "enemy-flutter": 103,
+  "enemy-splitter": 104,
   // ── projectiles (200–299) ──
   "projectile-petal": 200,
   // ── tiles (300–399) ──
@@ -60,6 +62,8 @@ export const ASSET_PATH: Readonly<Record<SpriteKey, string>> = {
   "enemy-grub": "/sprites/enemy-grub.svg",
   "enemy-snail": "/sprites/enemy-snail.svg",
   "enemy-candyking": "/sprites/enemy-candyking.svg",
+  "enemy-flutter": "/sprites/enemy-flutter.svg",
+  "enemy-splitter": "/sprites/enemy-splitter.svg",
   "projectile-petal": "/sprites/projectile-petal.svg",
   "tile-grass": "/sprites/tile-grass.svg",
   "tile-path": "/sprites/tile-path.svg",

@@ -41,6 +41,18 @@
       <feComposite in2="b" operator="in" result="g"/>
       <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <filter id="atlas-flutter-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="b"/>
+      <feFlood flood-color="#ff6fa5" flood-opacity="0.7"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="atlas-splitter-glow" x="-55%" y="-55%" width="210%" height="210%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="b"/>
+      <feFlood flood-color="#44e08a" flood-opacity="0.72"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
     <filter id="atlas-st-bolt" x="-80%" y="-80%" width="260%" height="260%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="b"/>
       <feFlood flood-color="#ffd700" flood-opacity="0.9"/>
@@ -155,6 +167,47 @@
       <circle cx="34" cy="26" r="2.4" fill="#4fe0c4"/>
       <circle cx="66" cy="26" r="2.4" fill="#4fe0c4"/>
       <rect x="30" y="38" width="40" height="5" rx="2" fill="#d9a400"/>
+    </g>
+  </symbol>
+
+  <!-- 🦋 Flutter enemy — airborne, fast, low HP (0 0 100 100).
+       Delicate flier; sits smaller in the box than grub. -->
+  <symbol id="enemy-flutter" viewBox="0 0 100 100">
+    <ellipse cx="50" cy="90" rx="14" ry="4" fill="#000" opacity="0.18"/>
+    <g filter="url(#atlas-flutter-glow)">
+      <ellipse cx="34" cy="42" rx="15" ry="18" fill="#ff6fa5"/>
+      <ellipse cx="36" cy="62" rx="11" ry="13" fill="#b388ff"/>
+      <ellipse cx="66" cy="42" rx="15" ry="18" fill="#ff6fa5"/>
+      <ellipse cx="64" cy="62" rx="11" ry="13" fill="#b388ff"/>
+      <circle cx="32" cy="40" r="4" fill="#ffd700"/>
+      <circle cx="68" cy="40" r="4" fill="#ffd700"/>
+    </g>
+    <rect x="47" y="38" width="6" height="34" rx="3" fill="#3a2563"/>
+    <circle cx="50" cy="38" r="6" fill="#4a2f7a"/>
+    <circle cx="47" cy="36" r="1.6" fill="#fff"/>
+    <circle cx="53" cy="36" r="1.6" fill="#fff"/>
+    <line x1="48" y1="33" x2="45" y2="27" stroke="#4a2f7a" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="52" y1="33" x2="55" y2="27" stroke="#4a2f7a" stroke-width="1.4" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- 🐙 Splitter enemy — squishy octopus-blob; splits into 2 minis on death (0 0 100 100).
+       MiniSplitter reuses this symbol/id at a smaller draw scale. -->
+  <symbol id="enemy-splitter" viewBox="0 0 100 100">
+    <ellipse cx="50" cy="88" rx="26" ry="6" fill="#000" opacity="0.25"/>
+    <path d="M30 64 Q27 80 26 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M40 64 Q37 80 44 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M50 64 Q47 80 46 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M60 64 Q57 80 64 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M70 64 Q67 80 66 86" stroke="#44e08a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <g filter="url(#atlas-splitter-glow)">
+      <circle cx="50" cy="48" r="24" fill="#44e08a"/>
+      <circle cx="50" cy="48" r="24" fill="#c6fff0" opacity="0.25"/>
+      <ellipse cx="42" cy="44" rx="5" ry="6" fill="#fff"/>
+      <ellipse cx="58" cy="44" rx="5" ry="6" fill="#fff"/>
+      <circle cx="43" cy="45" r="2.6" fill="#0d3a26"/>
+      <circle cx="59" cy="45" r="2.6" fill="#0d3a26"/>
+      <line x1="50" y1="26" x2="50" y2="70" stroke="#0d3a26" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.5"/>
+      <path d="M44 56 Q50 60 56 56" stroke="#0d3a26" stroke-width="2" fill="none" stroke-linecap="round"/>
     </g>
   </symbol>
 

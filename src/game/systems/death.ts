@@ -13,13 +13,13 @@
  * Iterates backward (releasing strips Enemy, swap-popping the query array).
  * Death particles / floating text are DEFERRED (pure juice, later slice).
  */
-import { Enemy, Health, type World, enemyQuery } from "../../engine/ecs/world";
+import { Enemy, Health, Position, type World, enemyQuery } from "../../engine/ecs/world";
 import type { System } from "../../engine/loop";
 import { ENEMY_BY_TYPE } from "../config/enemies";
 import { isSimPaused, setPhase } from "../ecs/game-state";
 import { addGold, getLives } from "../ecs/resources";
 import { goldMultiplier } from "../ecs/skills";
-import { releaseEnemy } from "../entities/create-enemy";
+import { releaseEnemy, spawnEnemy } from "../entities/create-enemy";
 import { SpawnSystem } from "./spawn";
 
 /**
@@ -39,8 +39,23 @@ export function createDeathSystem(
       if (Health.current[eid] > 0) continue;
 
       const cfg = ENEMY_BY_TYPE[Enemy.typeId[eid]];
-      // GoldRush (SPEC §6.4) doubles kill rewards while active.
-      if (cfg) addGold(world, cfg.reward * goldMultiplier());
+      if (cfg) {
+        // GoldRush (SPEC §6.4) doubles kill rewards while active.
+        addGold(world, cfg.reward * goldMultiplier());
+        // Split on death (SPEC §6.2 Splitter): spawn the minis at the dead
+        // enemy's position, fanned out, each on the flow field (spawnEnemy sets
+        // Pathfinder + fresh flags). Minis have NO onDeathSplit → no recursion.
+        // Cold one-time event — allocation here is fine. Spawning during this
+        // backward loop is safe: new entries append at the tail, past the cursor.
+        const split = cfg.onDeathSplit;
+        if (split) {
+          const x = Position.x[eid];
+          const y = Position.y[eid];
+          for (let k = 0; k < split.count; k++) {
+            spawnEnemy(world, split.type, x + (k - (split.count - 1) / 2) * 10, y);
+          }
+        }
+      }
       releaseEnemy(world, eid);
     }
 
