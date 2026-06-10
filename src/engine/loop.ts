@@ -124,7 +124,40 @@ let fpsWindowTime = 0;
 let fpsWindowFrames = 0;
 let avgFps = 60; // optimistic start
 
-/** Current adaptive-quality scale (0.2..1.0). SPEC §4.5; for a future Settings UI. */
+const LOW_LEVEL = QUALITY_LEVELS.length - 1; // lowest tier index (scale 0.2)
+const HIGH_LEVEL = 0; // best tier index (scale 1.0)
+
+/**
+ * User quality override (Settings, SPEC §4.5):
+ * - `"auto"` — FPS-driven adaptation (default).
+ * - `"high"` — pinned to full quality (1.0); FPS monitor bypassed.
+ * - `"low"`  — pinned to the lowest tier (0.2); FPS monitor bypassed.
+ */
+export type QualityMode = "auto" | "low" | "high";
+let qualityMode: QualityMode = "auto";
+
+/**
+ * Force a quality mode. `"high"`/`"low"` pin the VFX scale and bypass the FPS
+ * monitor; `"auto"` resumes adaptation (corrects within the next ~1s window).
+ */
+export function setQualityMode(mode: QualityMode): void {
+  qualityMode = mode;
+  if (mode === "high") {
+    qualityLevel = HIGH_LEVEL;
+    setVfxQuality(QUALITY_LEVELS[HIGH_LEVEL].scale);
+  } else if (mode === "low") {
+    qualityLevel = LOW_LEVEL;
+    setVfxQuality(QUALITY_LEVELS[LOW_LEVEL].scale);
+  }
+  // "auto": keep the current level; the monitor re-evaluates next window.
+}
+
+/** Current quality mode (Settings UI). */
+export function getQualityMode(): QualityMode {
+  return qualityMode;
+}
+
+/** Current effective quality scale (0.2..1.0), pinned or adaptive. SPEC §4.5. */
 export function getQuality(): number {
   return QUALITY_LEVELS[qualityLevel].scale;
 }
@@ -171,8 +204,9 @@ export function frameStep(rawDt: number, isPaused: boolean): number {
   advanceGameClock(dt);
   runSystems(world, dt, activeSystems);
   frame++;
-  // Adaptive quality (SPEC §4.5): accumulate a ~1s FPS bucket, then re-evaluate.
-  if (dt > 0) {
+  // Adaptive quality (SPEC §4.5): only in "auto" mode — "low"/"high" pin the
+  // scale and bypass the FPS monitor entirely.
+  if (qualityMode === "auto" && dt > 0) {
     fpsWindowTime += dt;
     fpsWindowFrames++;
     if (fpsWindowTime >= FPS_WINDOW) {
@@ -210,7 +244,9 @@ export function startLoop(systems: readonly System[] = SYSTEMS): void {
   running = true;
   activeSystems = systems;
   resetGameClock(); // fresh game clock per run (SPEC §4.6 game time)
-  // Fresh adaptive-quality state (SPEC §4.5): start optimistic at full quality.
+  // Fresh adaptive-quality state (SPEC §4.5): start optimistic at full quality,
+  // mode back to auto.
+  qualityMode = "auto";
   qualityLevel = 0;
   avgFps = 60;
   fpsWindowTime = 0;

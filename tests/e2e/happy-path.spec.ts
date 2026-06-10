@@ -147,3 +147,34 @@ test("the Endless start-screen button starts an endless run without crashing", a
   await expect(page.locator('[aria-label^="Wave "]')).toBeVisible();
   expect(errors, `runtime errors during the endless run:\n${errors.join("\n")}`).toEqual([]);
 });
+
+/**
+ * Settings / quality panel (SPEC §4.5) — real-browser proof of the entry point +
+ * the engine quality seam: open Settings from the start-screen gear, pick a
+ * quality mode, and close, with zero errors.
+ */
+test("the Settings gear opens the panel and the quality selector works", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);
+  });
+
+  await page.goto("/");
+  await expect(page.getByRole("dialog", { name: /Bloom Bastion/i })).toBeVisible();
+
+  // Open Settings from the start-screen gear (aria-label "Settings", exact so it
+  // doesn't match the panel's "Close settings").
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const settings = page.getByRole("dialog", { name: "Settings" });
+  await expect(settings).toBeVisible();
+
+  // Pick "Low" quality → drives the engine quality seam (setQualityMode).
+  await settings.getByText("Low", { exact: true }).click();
+
+  // Close the panel.
+  await page.getByRole("button", { name: "Close settings" }).click();
+  await expect(settings).toBeHidden();
+
+  expect(errors, `runtime errors in Settings:\n${errors.join("\n")}`).toEqual([]);
+});

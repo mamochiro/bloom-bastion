@@ -99,7 +99,8 @@ bursts, floating gold, Meteor impact, idle sprite motion, dragon enrage tint, sk
 screen flash) + **§4.5 adaptive quality**. `bun run check` green (Vitest 228/228),
 ~241KB gz. **Pipeline 10/10 systems REAL — no stubs** (AnimationSystem drives the VFX).
 Tower upgrades L1→L2→L3 + sell wired; **ALL 6 towers built × 3 levels = 18 configs
-(full §6.1 roster COMPLETE)** + **Endless mode** — Vitest 299/299, ~244KB gz, E2E 3 specs.
+(full §6.1 roster COMPLETE)** + **Endless mode** + **Settings/Quality UI** (§4.5
+Auto/Low/High override, gear on StartScreen) — Vitest 311/311, ~245KB gz, E2E 4 specs.
 `Projectile.special` ui16 (14/16 bits).
 **Pooled friendly `Minion` entity** (engine: Minion component + minionPool 64 +
 minionQuery; sprite 400-band centered) drives the Hive's bees. **Tracked follow-up:**

@@ -1,7 +1,8 @@
-import type { CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
 import { DIFFICULTY, type Difficulty } from "../../game/config/difficulty";
 import { requestStart } from "../../store/commands";
 import { setDifficulty, useSelectedDifficulty } from "../../store/difficulty";
+import { SettingsPanel } from "./SettingsPanel";
 
 /**
  * UI presentation for the difficulty options — display ORDER, human LABEL, and
@@ -29,14 +30,19 @@ const DIFFICULTY_ACCENT: Record<Difficulty, string> = {
  */
 export function StartScreen() {
   const selected = useSelectedDifficulty();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   return (
-    <StartScreenView
-      selected={selected}
-      onSelectDifficulty={setDifficulty}
-      // Wrap so the click event is never passed as the mode arg.
-      onPlay={() => requestStart()}
-      onEndless={() => requestStart("endless")}
-    />
+    <>
+      <StartScreenView
+        selected={selected}
+        onSelectDifficulty={setDifficulty}
+        // Wrap so the click event is never passed as the mode arg.
+        onPlay={() => requestStart()}
+        onEndless={() => requestStart("endless")}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+    </>
   );
 }
 
@@ -50,11 +56,13 @@ export function StartScreenView({
   onSelectDifficulty,
   onPlay,
   onEndless,
+  onOpenSettings,
 }: {
   selected: Difficulty;
   onSelectDifficulty: (d: Difficulty) => void;
   onPlay: () => void;
   onEndless: () => void;
+  onOpenSettings: () => void;
 }) {
   const backdrop: CSSProperties = {
     position: "absolute",
@@ -70,6 +78,7 @@ export function StartScreenView({
     pointerEvents: "auto",
   };
   const panel: CSSProperties = {
+    position: "relative",
     width: "100%",
     maxWidth: "340px",
     maxHeight: "100%",
@@ -80,6 +89,21 @@ export function StartScreenView({
     background: "radial-gradient(120% 80% at 50% 0%, var(--bg-stage), var(--bg-abyss))",
     border: "1px solid var(--bg-line)",
     boxShadow: "var(--shadow-panel)",
+  };
+  const gearBtn: CSSProperties = {
+    position: "absolute",
+    top: "var(--s3)",
+    right: "var(--s3)",
+    display: "grid",
+    placeItems: "center",
+    width: "var(--touch)",
+    height: "var(--touch)",
+    borderRadius: "var(--r-pill)",
+    border: "1px solid var(--bg-line)",
+    background: "var(--bg-abyss)",
+    color: "var(--text-soft)",
+    cursor: "pointer",
+    fontSize: "var(--fs-lg)",
   };
   const playBtn: CSSProperties = {
     pointerEvents: "auto",
@@ -133,6 +157,9 @@ export function StartScreenView({
     // biome-ignore lint/a11y/useSemanticElements: a styled modal overlay, not a native <dialog> — keeps backdrop/z-layering control over the Pixi canvas.
     <div style={backdrop} role="dialog" aria-modal="true" aria-label="Bloom Bastion — start">
       <div style={panel}>
+        <button type="button" style={gearBtn} onClick={onOpenSettings} aria-label="Settings">
+          ⚙
+        </button>
         <div aria-hidden="true" style={{ fontSize: "var(--fs-2xl)", lineHeight: 1 }}>
           🌸
         </div>

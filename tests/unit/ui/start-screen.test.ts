@@ -14,6 +14,7 @@ const renderView = (selected: Difficulty) =>
       onSelectDifficulty: noop,
       onPlay: noop,
       onEndless: noop,
+      onOpenSettings: noop,
     }),
   );
 
@@ -75,7 +76,13 @@ describe("StartScreenView — interaction", () => {
     const root = createRoot(container);
     await act(async () => {
       root.render(
-        createElement(StartScreenView, { selected, onSelectDifficulty, onPlay, onEndless }),
+        createElement(StartScreenView, {
+          selected,
+          onSelectDifficulty,
+          onPlay,
+          onEndless,
+          onOpenSettings: noop,
+        }),
       );
     });
     return root;

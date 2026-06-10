@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { frameStep, getAverageFps, getQuality, startLoop, stopLoop } from "../../src/engine/loop";
+import {
+  frameStep,
+  getAverageFps,
+  getQuality,
+  getQualityMode,
+  setQualityMode,
+  startLoop,
+  stopLoop,
+} from "../../src/engine/loop";
 
 /** Reset adaptive-quality + clock state without leaving a live rAF running. */
 function reset(): void {
@@ -49,5 +57,43 @@ describe("adaptive quality (SPEC §4.5)", () => {
     expect(getQuality()).toBe(1.0);
     run(53, 54); // 53 ≥ 55−3 → still within margin, no thrash
     expect(getQuality()).toBe(1.0);
+  });
+});
+
+describe("manual quality override (Settings, SPEC §4.5)", () => {
+  it("defaults to auto on startLoop", () => {
+    reset();
+    expect(getQualityMode()).toBe("auto");
+  });
+
+  it('"high" pins 1.0 even under sustained low FPS', () => {
+    reset();
+    setQualityMode("high");
+    expect(getQualityMode()).toBe("high");
+    run(20, 30); // monitor would normally pull to 0.2…
+    expect(getQuality()).toBe(1.0); // …but it's pinned high
+  });
+
+  it('"low" pins the minimum even at high FPS', () => {
+    reset();
+    setQualityMode("low");
+    run(62, 70); // monitor would normally hold 1.0…
+    expect(getQuality()).toBeCloseTo(0.2); // …but it's pinned low
+  });
+
+  it('switching back to "auto" resumes adaptation', () => {
+    reset();
+    setQualityMode("low"); // pinned 0.2
+    expect(getQuality()).toBeCloseTo(0.2);
+    setQualityMode("auto");
+    run(62, 70); // sustained 60fps → adapt back up
+    expect(getQuality()).toBe(1.0);
+  });
+
+  it("startLoop resets the mode to auto", () => {
+    setQualityMode("low");
+    expect(getQualityMode()).toBe("low");
+    reset(); // startLoop()
+    expect(getQualityMode()).toBe("auto");
   });
 });
