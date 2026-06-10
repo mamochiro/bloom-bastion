@@ -14,6 +14,7 @@
  *  - `cost`     — gold to place (SPEC §6.1).
  */
 import { SPECIAL, SPLASH_RADIUS_BIG_TILES, SPLASH_RADIUS_TILES } from "./combat";
+import { HIVE_SUMMON_COOLDOWN_S } from "./hive";
 import type { SpriteKey } from "./sprites";
 
 /** Per-level stat overrides reached by an upgrade (SPEC §6.1 L2/L3). */
@@ -158,12 +159,38 @@ const LUNA: TowerConfig = {
   ],
 };
 
+/**
+ * 🐝 Hive (base) — SPEC §6.1: 125g summoner. Does NOT fire — it maintains a
+ * SWARM of bee minions (5 DMG, 5s) that attack ground enemies. Has no
+ * damage/range/projectile of its own; `cooldown` is the swarm TOP-UP interval
+ * (HIVE_SUMMON_COOLDOWN_S). L2 "Bigger Swarm" → 3→5 bees; L3 "Queen Bee" → also
+ * 1 Queen (20 DMG, 10s). Swarm size / queen are read per level by TowerAI from
+ * config/hive.ts. No `levelSpecial` — bees aren't projectiles.
+ */
+const HIVE: TowerConfig = {
+  id: "hive",
+  name: "Hive",
+  damage: 0,
+  range: 0,
+  cooldown: HIVE_SUMMON_COOLDOWN_S,
+  cost: 125,
+  sprite: "tower-hive-l1",
+  upgrades: [
+    // L2 "Bigger Swarm" +90g: swarm 3→5 (the meaningful buff; "+HP per bee" is a
+    // NO-OP — minions have no hp by design, lifetime governs). FLAGGED.
+    { label: "Bigger Swarm", cost: 90, damage: 0, range: 0, cooldown: HIVE_SUMMON_COOLDOWN_S },
+    // L3 "Queen Bee" +180g: also maintain 1 Queen (queen "50 HP" is vestigial).
+    { label: "Queen Bee", cost: 180, damage: 0, range: 0, cooldown: HIVE_SUMMON_COOLDOWN_S },
+  ],
+};
+
 /** Numeric `Tower.typeId` (ui8) — the index stored in the ECS component. */
 export const TowerType = {
   Blossom: 0,
   Stormcloud: 1,
   SugarCannon: 2,
   Luna: 3,
+  Hive: 4,
 } as const;
 
 export type TowerTypeId = (typeof TowerType)[keyof typeof TowerType];
@@ -177,6 +204,7 @@ export const TOWERS: Readonly<Record<string, TowerConfig>> = {
   stormcloud: STORMCLOUD,
   sugarcannon: SUGAR_CANNON,
   luna: LUNA,
+  hive: HIVE,
 };
 
 /** Lookup by numeric `Tower.typeId` (what factories/systems carry). */
@@ -185,6 +213,7 @@ export const TOWER_BY_TYPE: Readonly<Record<number, TowerConfig>> = {
   [TowerType.Stormcloud]: STORMCLOUD,
   [TowerType.SugarCannon]: SUGAR_CANNON,
   [TowerType.Luna]: LUNA,
+  [TowerType.Hive]: HIVE,
 };
 
 /**
@@ -196,6 +225,7 @@ export const PLACEABLE_TOWERS: readonly TowerTypeId[] = [
   TowerType.Stormcloud,
   TowerType.SugarCannon,
   TowerType.Luna,
+  TowerType.Hive,
 ];
 
 /** Highest tower level (SPEC §6.1: 3). */

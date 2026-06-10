@@ -11,7 +11,13 @@
  * Test code may allocate freely (this is NOT the hot path), so the snapshot
  * copies via `Array.from` are fine here.
  */
-import { type World, enemyQuery, projectileQuery, towerQuery } from "../../../src/engine/ecs/world";
+import {
+  type World,
+  enemyQuery,
+  minionQuery,
+  projectileQuery,
+  towerQuery,
+} from "../../../src/engine/ecs/world";
 import { DEFAULT_DIFFICULTY, setActiveDifficulty } from "../../../src/game/config/difficulty";
 import { resetDamageRng } from "../../../src/game/ecs/apply-damage";
 import { resetPhase } from "../../../src/game/ecs/game-state";
@@ -19,6 +25,7 @@ import { _resetResourcesCache } from "../../../src/game/ecs/resources";
 import { resetSelection } from "../../../src/game/ecs/selection";
 import { resetSkills } from "../../../src/game/ecs/skills";
 import { releaseEnemy } from "../../../src/game/entities/create-enemy";
+import { releaseMinion } from "../../../src/game/entities/create-minion";
 import { releaseProjectile } from "../../../src/game/entities/create-projectile";
 import { releaseTower } from "../../../src/game/entities/create-tower";
 import { resetBossSummon } from "../../../src/game/systems/path-follow";
@@ -29,6 +36,7 @@ export function resetGameWorld(world: World): void {
   for (const eid of Array.from(enemyQuery(world))) releaseEnemy(world, eid);
   for (const eid of Array.from(projectileQuery(world))) releaseProjectile(world, eid);
   for (const eid of Array.from(towerQuery(world))) releaseTower(world, eid);
+  for (const eid of Array.from(minionQuery(world))) releaseMinion(world, eid);
   _resetResourcesCache();
   resetPhase(); // back to 'playing' so the pause guard doesn't freeze the next test
   SpawnSystem.reset(); // re-arm the live wave instance (shared singleton)

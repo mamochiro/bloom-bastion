@@ -1,12 +1,16 @@
+import { addComponent } from "bitecs";
 import { describe, expect, it } from "vitest";
+import { Minion, Position, Renderable, minionQuery, world } from "../../src/engine/ecs/world";
 import { createObjectPool } from "../../src/engine/pool/object-pool";
 import {
   ENEMY_POOL_SIZE,
   FLOATING_TEXT_POOL_SIZE,
+  MINION_POOL_SIZE,
   PARTICLE_POOL_SIZE,
   PROJECTILE_POOL_SIZE,
   enemyPool,
   floatingTextPool,
+  minionPool,
   particlePool,
   projectilePool,
 } from "../../src/engine/pool/pools";
@@ -126,5 +130,63 @@ describe("pre-allocated §4.4 pools", () => {
     expect(g.visible).toBe(false); // reset hook hid it
     expect(particlePool.acquire()).toBe(g); // recycled instance
     particlePool.release(g);
+  });
+});
+
+describe("minion pool (Hive bees, SPEC §4.4/§6.1)", () => {
+  it("has the SPEC capacity and is fully pre-allocated", () => {
+    expect(minionPool.capacity).toBe(MINION_POOL_SIZE);
+    expect(MINION_POOL_SIZE).toBe(64);
+    expect(minionPool.available()).toBe(MINION_POOL_SIZE);
+  });
+
+  it("resets all Minion + Position + Renderable state on release/recycle", () => {
+    const eid = must(minionPool.acquire());
+    // Simulate the gameplay factory: add components + dirty every field.
+    addComponent(world, Minion, eid);
+    addComponent(world, Position, eid);
+    addComponent(world, Renderable, eid);
+    Minion.targetEid[eid] = 42;
+    Minion.expiresAt[eid] = 99.5;
+    Minion.attackCdUntil[eid] = 88.25;
+    Minion.damage[eid] = 7;
+    Position.x[eid] = 10;
+    Position.y[eid] = 20;
+    Renderable.spriteId[eid] = 400;
+    Renderable.tint[eid] = 0xff00ff;
+    expect(minionQuery(world)).toContain(eid); // live while components present
+
+    minionPool.release(eid);
+
+    // Reset stripped the components → out of the query, no stale state.
+    expect(minionQuery(world)).not.toContain(eid);
+    expect(Minion.targetEid[eid]).toBe(0);
+    expect(Minion.expiresAt[eid]).toBe(0);
+    expect(Minion.attackCdUntil[eid]).toBe(0);
+    expect(Minion.damage[eid]).toBe(0);
+    expect(Position.x[eid]).toBe(0);
+    expect(Position.y[eid]).toBe(0);
+    expect(Renderable.spriteId[eid]).toBe(0);
+    expect(Renderable.tint[eid]).toBe(0);
+
+    // Recycled: same eid handed back out, still clean.
+    const eid2 = must(minionPool.acquire());
+    expect(eid2).toBe(eid);
+    expect(Minion.damage[eid2]).toBe(0);
+    minionPool.release(eid2);
+  });
+
+  it("returns a safe sentinel (undefined) when exhausted at 64, never grows", () => {
+    const taken: number[] = [];
+    for (;;) {
+      const e = minionPool.acquire();
+      if (e === undefined) break;
+      taken.push(e);
+    }
+    expect(taken.length).toBe(MINION_POOL_SIZE);
+    expect(minionPool.acquire()).toBeUndefined(); // sentinel, no growth
+    expect(minionPool.capacity).toBe(MINION_POOL_SIZE);
+    for (const e of taken) minionPool.release(e); // restore for isolation
+    expect(minionPool.available()).toBe(MINION_POOL_SIZE);
   });
 });

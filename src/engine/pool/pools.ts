@@ -1,5 +1,6 @@
+import { removeComponent } from "bitecs";
 import { Graphics, Text } from "pixi.js";
-import { world } from "../ecs/world";
+import { Minion, Position, Renderable, world } from "../ecs/world";
 import { type ObjectPool, createEntityPool, createObjectPool } from "./object-pool";
 
 /**
@@ -18,6 +19,7 @@ export const PARTICLE_POOL_SIZE = 500;
 export const PROJECTILE_POOL_SIZE = 100;
 export const ENEMY_POOL_SIZE = 200;
 export const FLOATING_TEXT_POOL_SIZE = 50;
+export const MINION_POOL_SIZE = 64;
 
 // --- eid-backed pools (ECS entities) ---------------------------------------
 // Caller owns components: add/set on acquire, remove on release (integration TBD).
@@ -27,6 +29,19 @@ export const projectilePool: ObjectPool<number> = createEntityPool(world, PROJEC
 
 /** Pooled enemy entities (eid). */
 export const enemyPool: ObjectPool<number> = createEntityPool(world, ENEMY_POOL_SIZE);
+
+/**
+ * Pooled friendly-minion entities (Hive bees, eid). Bees spawn/die frequently,
+ * so this is pre-allocated like the rest. On release the reset STRIPS the
+ * Minion/Position/Renderable components (bitECS `removeComponent` also zeroes
+ * their field arrays), so a recycled eid leaves `minionQuery` carrying NO stale
+ * target/lifetime/damage/position. The factory re-adds + sets them on acquire.
+ */
+export const minionPool: ObjectPool<number> = createEntityPool(world, MINION_POOL_SIZE, (eid) => {
+  removeComponent(world, Minion, eid);
+  removeComponent(world, Position, eid);
+  removeComponent(world, Renderable, eid);
+});
 
 // --- Pixi-object pools (visual only, no ECS) -------------------------------
 // Hidden on release; the consuming system positions + shows them on acquire.

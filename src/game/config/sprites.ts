@@ -6,10 +6,12 @@
  * and gameplay factories all align to.
  *
  * ── ID ALLOCATION (stable once assigned; never renumber a live id) ──
- *   1–99    towers
- *   100–199 enemies
+ *   1–99    towers              (RenderSystem: grounded anchor 0.5/1.0)
+ *   100–199 enemies             (centered 0.5/0.5; idle BOB motion)
  *   200–299 projectiles
  *   300–399 tiles
+ *   400–499 tower-spawned minions (centered 0.5/0.5; scale-pulse, NOT bob —
+ *           must be >199 so RenderSystem centers them and they don't enemy-bob)
  *
  * ── ROUND-2 RECONCILIATION (flagged for engine/gameplay) ──
  * Today the slice RenderSystem draws primitive shapes keyed by the engine
@@ -32,6 +34,7 @@ export const SPRITE = {
   "tower-stormcloud-l1": 2,
   "tower-sugarcannon-l1": 3,
   "tower-luna-l1": 4,
+  "tower-hive-l1": 5,
   // ── enemies (100–199) ──
   "enemy-grub": 100,
   "enemy-snail": 101,
@@ -46,6 +49,9 @@ export const SPRITE = {
   // ── tiles (300–399) ──
   "tile-grass": 300,
   "tile-path": 301,
+  // ── tower-spawned minions (400–499; centered + scale-pulse, must be >199) ──
+  "minion-bee": 400,
+  "minion-queen": 401,
 } as const;
 
 export type SpriteKey = keyof typeof SPRITE;
@@ -66,6 +72,9 @@ export const ASSET_PATH: Readonly<Record<SpriteKey, string>> = {
   "tower-stormcloud-l1": "/sprites/tower-stormcloud-l1.svg",
   "tower-sugarcannon-l1": "/sprites/tower-sugarcannon-l1.svg",
   "tower-luna-l1": "/sprites/tower-luna-l1.svg",
+  "tower-hive-l1": "/sprites/tower-hive-l1.svg",
+  "minion-bee": "/sprites/minion-bee.svg",
+  "minion-queen": "/sprites/minion-queen.svg",
   "enemy-grub": "/sprites/enemy-grub.svg",
   "enemy-snail": "/sprites/enemy-snail.svg",
   "enemy-candyking": "/sprites/enemy-candyking.svg",

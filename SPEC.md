@@ -339,12 +339,31 @@ User can also force quality via Settings: Auto / Low / High.
     splash; TowerAI targets nearest in range including fliers.
   - Prereq: `Projectile.special` widened **ui8 → ui16** (the 8-bit field was full).
 
-#### 🐝 Hive — Summoner
-- **Base:** Summons 3 bee minions (10 HP, 5 DMG each, 5s lifetime)
+#### 🐝 Hive — Summoner *(BUILT)*
+- **Base:** Summons 3 bee minions (5 DMG each, 5s lifetime)
 - **Cost:** 125 gold
 - **Special:** Bees patrol nearby, attack ground enemies
-- **L2 — Bigger Swarm (+90g):** +2 bees, +HP per bee
-- **L3 — Queen Bee (+180g):** Spawns 1 Queen (50 HP, 20 DMG, 10s)
+- **L2 — Bigger Swarm (+90g):** +2 bees (→5)
+- **L3 — Queen Bee (+180g):** Spawns 1 Queen (20 DMG, 10s)
+- **Implementation (flagged):**
+  - The Hive **does not fire** — it's a summoner. `Tower.cooldown` is the swarm
+    **top-up interval** (`HIVE_SUMMON_COOLDOWN_S = 1.0s`, NOT-LOCKED): each tick it
+    tops the swarm back up to size (3 / 5) + 1 Queen at L3. Summon + bee AI fold
+    into **TowerAI (slot 4)** as a sub-pass — no new §4.2 slot.
+  - **Minions have NO hp** (engine `Minion` omits it by design) — **lifetime**
+    governs death. So §6.1's "10 HP per bee" / L2 "+HP per bee" / queen "50 HP"
+    are **vestigial NO-OPs**; L2's real buff is the **3→5 swarm** size.
+  - **Bee AI (NOT-LOCKED):** speed 2.5 tiles/s, attack interval 0.5s, seek radius
+    2.0 tiles, attack range 0.33 tiles. Bees free-fly (NOT flow-field) toward the
+    nearest **ground** enemy within seek radius of themselves (**skip fliers** —
+    bees attack ground per §6.1), biting via the shared apply-damage chokepoint
+    (so dodge/armor apply). Bee-hit VFX deferred.
+  - **"Patrol nearby" approximation:** `Minion` has no owner/home field, so a
+    Hive counts minions within `HIVE_COUNT_RADIUS = 3.0 tiles` as its swarm for
+    top-up; bees spawn at the hive and only chase within their seek radius → they
+    naturally fight near the hive. No hard leash. Multiple hives close together
+    share the proximity count (flagged). (A true home-leash would need an engine
+    `Minion.home` field — not requested.)
 
 #### 🌊 Bubbler — Crowd Control
 - **Base:** 12 DMG, 2.0 range, 0.8s fire rate

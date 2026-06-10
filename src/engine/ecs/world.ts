@@ -83,6 +83,29 @@ export const Status = defineComponent({
   dotUntil: Types.f32,
 });
 
+/**
+ * Friendly MINION (Tower #5 Hive bees, SPEC §6.1) — the first friendly MOBILE
+ * unit. Unlike towers (static) and enemies (flow-field), a minion free-moves
+ * toward an enemy target, attacks it, and expires on a lifetime. It reuses
+ * Position + Renderable (rendered centred like any non-tower sprite); it has NO
+ * Velocity (gameplay computes per-frame movement toward the target) and NO
+ * Health — there is no enemy-attacks-minion mechanic in SPEC, so LIFETIME
+ * (`expiresAt`) governs death, not hp.
+ *
+ * Spawn/AI/factory are GAMEPLAY's (folded into TowerAI, slot 4 — no new §4.2
+ * slot, no engine system). The engine provides only the component + pool + query.
+ */
+export const Minion = defineComponent({
+  /** Current enemy target eid; 0 = none / seeking. */
+  targetEid: Types.eid,
+  /** `gameTime()` deadline (seconds); once `gameTime() >= expiresAt` → despawn. */
+  expiresAt: Types.f64,
+  /** `gameTime()` at which this bee may attack again (per-bee attack interval). */
+  attackCdUntil: Types.f64,
+  /** Per-hit damage. */
+  damage: Types.ui16,
+});
+
 /** All components, in declaration order — handy for registration/serialization. */
 export const components: readonly Component[] = [
   Position,
@@ -95,6 +118,7 @@ export const components: readonly Component[] = [
   Pathfinder,
   Animation,
   Status,
+  Minion,
 ];
 
 // --- World -----------------------------------------------------------------
@@ -125,3 +149,6 @@ export const projectileQuery = defineQuery([Projectile, Position]);
 
 /** Entities following the flow field (PathFollowSystem). */
 export const pathfinderQuery = defineQuery([Pathfinder, Position, Velocity]);
+
+/** Friendly minions (Hive bees) — gameplay iterates this in TowerAI (slot 4). */
+export const minionQuery = defineQuery([Minion, Position, Renderable]);

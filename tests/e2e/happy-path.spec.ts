@@ -80,3 +80,40 @@ test("boots clean, starts a Normal run, places + upgrades a tower, survives a li
 
   expect(errors, `runtime errors during the run:\n${errors.join("\n")}`).toEqual([]);
 });
+
+/**
+ * Hive bee-render path (Tower #5). jsdom can't exercise the NEW pooled-minion
+ * render/AI: bees acquire from the pool, draw a 400-band centered sprite,
+ * free-fly toward ground enemies, and release on expiry. Placing a Hive and
+ * running a live wave drives all of that in a real browser; any crash in the
+ * minion spawn/move/expire/render path trips the zero-error assertion.
+ */
+test("places a Hive and renders its bee swarm over a live wave without crashing", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);
+  });
+
+  await page.goto("/");
+  await page.getByText("Normal", { exact: true }).click();
+  await page.getByRole("button", { name: /^Play$/ }).click();
+  await expect(page.getByRole("dialog", { name: /Bloom Bastion/i })).toBeHidden();
+
+  const goldPill = page.locator('div[aria-label$="gold"]');
+  await expect(goldPill).toHaveAttribute("aria-label", "150 gold");
+  const cbox = await page.locator("#game canvas").boundingBox();
+  expect(cbox).not.toBeNull();
+
+  // Select the Hive (125g) and place it on a grass cell → gold 150 → 25.
+  await page.getByRole("button", { name: /Hive/ }).click();
+  await page.mouse.click((cbox?.x ?? 0) + 3 * 60 + 30, (cbox?.y ?? 0) + 2 * 60 + 30); // cell (3,2)
+  await expect(goldPill).toHaveAttribute("aria-label", "25 gold");
+
+  // Let the swarm spawn → seek → attack → expire across a live wave.
+  await page.waitForTimeout(5000);
+  await expect(page.locator('[aria-label^="Wave "]')).toBeVisible();
+  expect(errors, `runtime errors with the bee swarm live:\n${errors.join("\n")}`).toEqual([]);
+});

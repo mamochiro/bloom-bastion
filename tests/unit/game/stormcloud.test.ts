@@ -45,6 +45,7 @@ describe("Stormcloud (chain lightning)", () => {
       TowerType.Stormcloud,
       TowerType.SugarCannon,
       TowerType.Luna,
+      TowerType.Hive,
     ]);
   });
 

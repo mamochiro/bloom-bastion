@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Bloom Bastion — Bee minion (Hive tower summon, SPEC §6.1). A tiny autonomous worker bee.
+       SMALL-SPRITE CONVENTION: square 0 0 32 32 viewBox, geometry CENTERED on (16,16) for the
+       RenderSystem's 0.5/0.5 anchor (free-moving unit — NOT grounded like a tower; no hex pedestal).
+       Tokens (design-assets/export/design-tokens.css → hex): gold #ffd700, hive-dark #e07b1f,
+       hive-mid #ffb74d, bg-deep #1a0f2e (stripes/eyes), white wings. Orbit/flutter CSS deferred. -->
+  <defs>
+    <filter id="bee-glow" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/>
+      <feFlood flood-color="#ffb74d" flood-opacity="0.85"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- wings (behind body) -->
+  <ellipse cx="11" cy="11" rx="5.5" ry="3.2" fill="#fff" opacity="0.85" transform="rotate(-25 11 11)"/>
+  <ellipse cx="21" cy="11" rx="5.5" ry="3.2" fill="#fff" opacity="0.85" transform="rotate(25 21 11)"/>
+
+  <g filter="url(#bee-glow)">
+    <!-- body -->
+    <ellipse cx="16" cy="17" rx="8" ry="6" fill="#ffd700"/>
+    <ellipse cx="16" cy="15.5" rx="4" ry="2.4" fill="#ffe9b0" opacity="0.7"/>
+    <!-- stripes -->
+    <rect x="13.5" y="11.5" width="2" height="11" rx="1" fill="#1a0f2e"/>
+    <rect x="18.5" y="11.5" width="2" height="11" rx="1" fill="#1a0f2e"/>
+    <!-- stinger -->
+    <path d="M24 17 l3 0 l-3 1.6 Z" fill="#e07b1f"/>
+  </g>
+
+  <!-- face -->
+  <circle cx="12.5" cy="16" r="1.4" fill="#1a0f2e"/>
+  <circle cx="12.0" cy="15.5" r="0.5" fill="#fff"/>
+  <!-- antennae -->
+  <line x1="13" y1="11.5" x2="11.5" y2="8" stroke="#1a0f2e" stroke-width="0.9" stroke-linecap="round"/>
+  <circle cx="11.5" cy="8" r="1" fill="#e07b1f"/>
+</svg>

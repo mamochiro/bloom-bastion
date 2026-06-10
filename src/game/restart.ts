@@ -4,7 +4,13 @@
  * on the next UISync push. Both are invoked from InputSystem (slot 1) BEFORE the
  * pause guard, so they work while the sim is frozen (menu / won / lost).
  */
-import { type World, enemyQuery, projectileQuery, towerQuery } from "../engine/ecs/world";
+import {
+  type World,
+  enemyQuery,
+  minionQuery,
+  projectileQuery,
+  towerQuery,
+} from "../engine/ecs/world";
 import { clearBuild } from "../store/build";
 import {
   DIFFICULTY,
@@ -17,6 +23,7 @@ import { initResources } from "./ecs/resources";
 import { resetSelection } from "./ecs/selection";
 import { resetSkills } from "./ecs/skills";
 import { releaseEnemy } from "./entities/create-enemy";
+import { releaseMinion } from "./entities/create-minion";
 import { releaseProjectile } from "./entities/create-projectile";
 import { releaseTower } from "./entities/create-tower";
 import { resetLevel } from "./map/level-1";
@@ -29,6 +36,7 @@ function clearEntities(world: World): void {
   for (const eid of Array.from(enemyQuery(world))) releaseEnemy(world, eid);
   for (const eid of Array.from(projectileQuery(world))) releaseProjectile(world, eid);
   for (const eid of Array.from(towerQuery(world))) releaseTower(world, eid);
+  for (const eid of Array.from(minionQuery(world))) releaseMinion(world, eid);
 }
 
 /**
