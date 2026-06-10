@@ -94,6 +94,9 @@ boss-phase system, difficulty scaling, real SVG sprite art, **VFX** (hit-flash, 
 bursts, floating gold, Meteor impact, idle sprite motion, dragon enrage tint, skill
 screen flash) + **§4.5 adaptive quality**. `bun run check` green (Vitest 228/228),
 ~240KB gz. **Pipeline 10/10 systems REAL — no stubs** (AnimationSystem drives the VFX).
+**M0 COMPLETE** — first Playwright E2E happy-path (`tests/e2e/happy-path.spec.ts`,
+mobile Pixel-5) is GREEN: real-browser runtime proof that the game boots (Pixi renders
+a real `<canvas>`) and plays a live wave with ZERO uncaught exceptions (`bun run test:e2e`).
 
 **Next up (all polish/expansion — core game is complete):** Endless mode · towers 3–6
 + L2/L3 · Settings Auto/Low/High quality UI (§4.5) · enemy-palette token ADR ·
