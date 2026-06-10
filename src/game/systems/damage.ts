@@ -23,10 +23,19 @@ import {
 } from "../../engine/ecs/world";
 import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
-import { CHAIN_FALLOFF, CHAIN_RADIUS_TILES, SLOW_DURATION_S, SPECIAL } from "../config/combat";
+import {
+  CHAIN_FALLOFF,
+  CHAIN_RADIUS_TILES,
+  PETAL_MAX_TARGETS,
+  PETAL_RADIUS_TILES,
+  SLOW_DURATION_S,
+  SPECIAL,
+  STUN_CHANCE,
+  STUN_DURATION_S,
+} from "../config/combat";
 import { ENEMY_BY_TYPE, ENEMY_FLAGS, EnemyType } from "../config/enemies";
 import { TINT } from "../config/tokens";
-import { applyDamage } from "../ecs/apply-damage";
+import { applyDamage, damageRoll } from "../ecs/apply-damage";
 import { hitQuery } from "../ecs/components";
 import { isSimPaused } from "../ecs/game-state";
 import { spawnEnemy } from "../entities/create-enemy";
@@ -35,6 +44,7 @@ import { CELL } from "../map/coords";
 import { flashEntity, spawnBurst } from "../vfx";
 
 const CHAIN_RADIUS_SQ = (CHAIN_RADIUS_TILES * CELL) ** 2;
+const PETAL_RADIUS_SQ = (PETAL_RADIUS_TILES * CELL) ** 2;
 
 /**
  * Boss HP-threshold phases (SPEC §6.2). After a boss takes damage, trigger any
@@ -73,20 +83,28 @@ function checkBossPhases(world: World, eid: number): void {
   }
 }
 
-/**
- * Chain lightning (Stormcloud): arc `baseDamage * CHAIN_FALLOFF` to the up-to-2
- * nearest OTHER live enemies within `CHAIN_RADIUS` of the primary. Zero-alloc
- * top-2 scan (scalars, no array/sort); the primary is excluded so it's never
- * double-hit, and the two arcs are distinct enemies.
- */
-function chainLightning(world: World, primary: number, baseDamage: number): void {
-  const px = Position.x[primary];
-  const py = Position.y[primary];
-  let aEid = -1;
-  let aDist = Number.POSITIVE_INFINITY;
-  let bEid = -1;
-  let bDist = Number.POSITIVE_INFINITY;
+// Nearest-N scratch (max 3) — reused across calls so the scans never allocate.
+const MAX_N = 3;
+const _nearEid = new Int32Array(MAX_N);
+const _nearDist = new Float64Array(MAX_N);
 
+/**
+ * Fill `_nearEid[0..return-1]` with the up-to-`n` nearest live OTHER enemies
+ * within `radiusSq` of (`px`,`py`), sorted by distance. Zero-alloc (module
+ * scratch + insertion into ≤3 slots). Returns how many were found.
+ */
+function findNearest(
+  world: World,
+  primary: number,
+  px: number,
+  py: number,
+  radiusSq: number,
+  n: number,
+): number {
+  for (let s = 0; s < n; s++) {
+    _nearEid[s] = -1;
+    _nearDist[s] = Number.POSITIVE_INFINITY;
+  }
   const enemies = enemyQuery(world);
   for (let i = 0; i < enemies.length; i++) {
     const e = enemies[i];
@@ -94,21 +112,70 @@ function chainLightning(world: World, primary: number, baseDamage: number): void
     const dx = Position.x[e] - px;
     const dy = Position.y[e] - py;
     const d = dx * dx + dy * dy;
-    if (d > CHAIN_RADIUS_SQ) continue;
-    if (d < aDist) {
-      bEid = aEid;
-      bDist = aDist;
-      aEid = e;
-      aDist = d;
-    } else if (d < bDist) {
-      bEid = e;
-      bDist = d;
+    if (d > radiusSq) continue;
+    // Insertion into the sorted top-n.
+    let pos = n;
+    for (let s = 0; s < n; s++) {
+      if (d < _nearDist[s]) {
+        pos = s;
+        break;
+      }
+    }
+    if (pos < n) {
+      for (let s = n - 1; s > pos; s--) {
+        _nearDist[s] = _nearDist[s - 1];
+        _nearEid[s] = _nearEid[s - 1];
+      }
+      _nearDist[pos] = d;
+      _nearEid[pos] = e;
     }
   }
+  let found = 0;
+  for (let s = 0; s < n; s++) if (_nearEid[s] >= 0) found++;
+  return found;
+}
 
+/**
+ * Chain lightning (Stormcloud): arc `baseDamage * CHAIN_FALLOFF` to the
+ * `extraTargets` nearest OTHER enemies within `CHAIN_RADIUS` (2 at L1, 3 with
+ * Static Field). Primary excluded → no double-hit; arcs are distinct.
+ */
+function chainLightning(
+  world: World,
+  primary: number,
+  baseDamage: number,
+  extraTargets: number,
+): void {
+  const k = findNearest(
+    world,
+    primary,
+    Position.x[primary],
+    Position.y[primary],
+    CHAIN_RADIUS_SQ,
+    extraTargets,
+  );
   const chainDamage = baseDamage * CHAIN_FALLOFF;
-  if (aEid >= 0) applyDamage(aEid, chainDamage);
-  if (bEid >= 0) applyDamage(bEid, chainDamage);
+  for (let s = 0; s < k; s++) applyDamage(_nearEid[s], chainDamage);
+}
+
+/**
+ * Petal Storm (Blossom L3): the primary's `damage` + 40%/2s slow splash to the
+ * up-to-`PETAL_MAX_TARGETS` nearest OTHER enemies within `PETAL_RADIUS`.
+ */
+function petalStorm(world: World, primary: number, damage: number, until: number): void {
+  const k = findNearest(
+    world,
+    primary,
+    Position.x[primary],
+    Position.y[primary],
+    PETAL_RADIUS_SQ,
+    PETAL_MAX_TARGETS,
+  );
+  for (let s = 0; s < k; s++) {
+    const e = _nearEid[s];
+    applyDamage(e, damage);
+    Status.slowedUntil[e] = until;
+  }
 }
 
 export const DamageSystem: System = (world: World, _dt: number): World => {
@@ -125,14 +192,25 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
       // actually lands — NOT a Shade dodge / 0-damage (applyDamage returns false).
       if (applyDamage(target, damage)) flashEntity(target);
 
-      if ((special & SPECIAL.Slow) !== 0 && hasComponent(world, Status, target)) {
+      const hasStatus = hasComponent(world, Status, target);
+      if ((special & SPECIAL.Slow) !== 0 && hasStatus) {
         // Slow magnitude is read by PathFollowSystem (SLOW_REDUCTION); here we
-        // only stamp the expiry. Single slow source this slice (Blossom).
+        // only stamp the expiry. Blossom 40%/2s.
         Status.slowedUntil[target] = gameTime() + SLOW_DURATION_S;
       }
       if ((special & SPECIAL.Chain) !== 0) {
-        // Primary already took full damage; arc 50% to the 2 nearest others.
-        chainLightning(world, target, damage);
+        // Primary already took full damage; arc 50% to the nearest others
+        // (2 base, +1 with Static Field / ChainPlus).
+        chainLightning(world, target, damage, (special & SPECIAL.ChainPlus) !== 0 ? 3 : 2);
+      }
+      if ((special & SPECIAL.AoeSlow) !== 0) {
+        // Petal Storm (Blossom L3): damage + slow splash to nearby enemies.
+        petalStorm(world, target, damage, gameTime() + SLOW_DURATION_S);
+      }
+      if ((special & SPECIAL.Stun) !== 0 && hasStatus && damageRoll() < STUN_CHANCE) {
+        // Overcharge (Stormcloud L3): 20% stun. Reuses the Freeze stun path
+        // (PathFollow honours Status.stunnedUntil).
+        Status.stunnedUntil[target] = gameTime() + STUN_DURATION_S;
       }
       // Boss phase transitions (SPEC §6.2) — no-op for non-boss enemies.
       checkBossPhases(world, target);

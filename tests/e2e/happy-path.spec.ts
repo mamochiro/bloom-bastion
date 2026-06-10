@@ -10,7 +10,9 @@ import { expect, test } from "@playwright/test";
  * world px == CSS px (scale 1). The flow-field grid is 16×9 @ 60px; the lane is
  * row 4, so cell (3,2) — screen (210,150) — is a buildable GRASS tile.
  */
-test("boots clean, starts a Normal run, places a tower, survives a live wave", async ({ page }) => {
+test("boots clean, starts a Normal run, places + upgrades a tower, survives a live wave", async ({
+  page,
+}) => {
   // --- Boot-proof: any uncaught error or console.error fails the test. ---
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
@@ -51,8 +53,21 @@ test("boots clean, starts a Normal run, places a tower, survives a live wave", a
   await page.getByRole("button", { name: /Blossom/ }).click();
   const cbox = await canvas.boundingBox();
   expect(cbox).not.toBeNull();
-  await page.mouse.click((cbox?.x ?? 0) + 3 * 60 + 30, (cbox?.y ?? 0) + 2 * 60 + 30); // cell (3,2)
+  const towerX = (cbox?.x ?? 0) + 3 * 60 + 30;
+  const towerY = (cbox?.y ?? 0) + 2 * 60 + 30; // cell (3,2)
+  await page.mouse.click(towerX, towerY);
   await expect(goldPill).toHaveAttribute("aria-label", "100 gold");
+
+  // --- Upgrade loop (real-browser proof of the new feature, SPEC §6.1) ---
+  // No build selection is active after placement, so re-tapping the tower's cell
+  // SELECTS it → the UpgradePanel drawer opens.
+  await page.mouse.click(towerX, towerY);
+  await expect(page.getByRole("dialog", { name: /Blossom tower, level 1/i })).toBeVisible();
+  // Apply L2 "Bigger Bloom" (+40g): gold 100 → 60, tower level → 2.
+  await page.getByRole("button", { name: /^Upgrade:/ }).click();
+  await expect(goldPill).toHaveAttribute("aria-label", "60 gold");
+  await expect(page.getByRole("dialog", { name: /Blossom tower, level 2/i })).toBeVisible();
+  await expect(page.getByText("Lv 2")).toBeVisible();
 
   // Let a live wave run; the sim ticks (spawn → path-follow → tower → death).
   // Surviving this window with zero errors IS the no-crash proof.

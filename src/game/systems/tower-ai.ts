@@ -15,8 +15,7 @@ import {
   towerQuery,
 } from "../../engine/ecs/world";
 import type { System } from "../../engine/loop";
-import { SPECIAL } from "../config/combat";
-import { TOWER_BY_TYPE } from "../config/towers";
+import { TOWER_BY_TYPE, towerLevelStats } from "../config/towers";
 import { isSimPaused } from "../ecs/game-state";
 import { createProjectile } from "../entities/create-projectile";
 import { CELL } from "../map/coords";
@@ -33,12 +32,14 @@ export const TowerAISystem: System = (world: World, dt: number): World => {
     Tower.cooldown[tower] -= dt;
     if (Tower.cooldown[tower] > 0) continue;
 
-    const cfg = TOWER_BY_TYPE[Tower.typeId[tower]];
-    if (!cfg) continue;
+    const typeId = Tower.typeId[tower];
+    if (!TOWER_BY_TYPE[typeId]) continue;
+    // Current-level stats (SPEC §6.1 upgrades) — damage/range/cooldown/special.
+    const stats = towerLevelStats(typeId, Tower.level[tower]);
 
     const tx = Position.x[tower];
     const ty = Position.y[tower];
-    const rangePx = cfg.range * CELL;
+    const rangePx = stats.range * CELL;
     const rangeSq = rangePx * rangePx;
 
     // Zero-alloc nearest-in-range scan.
@@ -58,12 +59,9 @@ export const TowerAISystem: System = (world: World, dt: number): World => {
 
     if (bestEid < 0) continue; // nothing in range — stay ready (cooldown ≤ 0)
 
-    // Build the projectile's effect bits from this tower's config specials.
-    let special = SPECIAL.None;
-    if (cfg.slow) special |= SPECIAL.Slow;
-    if (cfg.chain) special |= SPECIAL.Chain;
-    createProjectile(world, tx, ty, bestEid, cfg.damage, special);
-    Tower.cooldown[tower] = cfg.cooldown;
+    // Fire with the current level's damage + special bits.
+    createProjectile(world, tx, ty, bestEid, stats.damage, stats.special);
+    Tower.cooldown[tower] = stats.cooldown;
     Tower.lastTarget[tower] = bestEid;
   }
   return world;

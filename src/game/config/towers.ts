@@ -13,7 +13,22 @@
  *                 the `Tower.cooldown` countdown after each shot.
  *  - `cost`     — gold to place (SPEC §6.1).
  */
+import { SPECIAL } from "./combat";
 import type { SpriteKey } from "./sprites";
+
+/** Per-level stat overrides reached by an upgrade (SPEC §6.1 L2/L3). */
+export interface TowerUpgrade {
+  /** Upgrade name shown in the panel (SPEC §6.1). */
+  readonly label: string;
+  /** Gold to APPLY this upgrade (the "+Ng" in SPEC §6.1). */
+  readonly cost: number;
+  /** Resulting damage at this level. */
+  readonly damage: number;
+  /** Resulting range (tiles). */
+  readonly range: number;
+  /** Resulting fire interval (s). */
+  readonly cooldown: number;
+}
 
 /** Slow status applied on hit (SPEC §6.1 Blossom special). */
 export interface SlowEffect {
@@ -50,6 +65,8 @@ export interface TowerConfig {
   readonly slow?: SlowEffect;
   /** On-hit chain lightning (SPEC §6.1 Stormcloud special). */
   readonly chain?: ChainEffect;
+  /** L2, L3 stat overrides (SPEC §6.1). Base flat fields above are L1. */
+  readonly upgrades?: readonly [TowerUpgrade, TowerUpgrade];
 }
 
 /**
@@ -65,6 +82,14 @@ const BLOSSOM: TowerConfig = {
   cost: 50,
   sprite: "tower-blossom-l1",
   slow: { speedReduction: 0.4, durationS: 2 },
+  upgrades: [
+    // L2 "Bigger Bloom" +40g: +10 DMG (25), +0.3 range (2.8), faster fire.
+    // NOT-LOCKED: §6.1 says "faster fire" with no number → 1.0s slice value (flag).
+    { label: "Bigger Bloom", cost: 40, damage: 25, range: 2.8, cooldown: 1.0 },
+    // L3 "Petal Storm" +80g: Multi-target (3) AoE on hit (damage+slow splash);
+    // stats carry over from L2 (no §6.1 stat change), special gains AoeSlow.
+    { label: "Petal Storm", cost: 80, damage: 25, range: 2.8, cooldown: 1.0 },
+  ],
 };
 
 /**
@@ -80,6 +105,12 @@ const STORMCLOUD: TowerConfig = {
   cost: 100,
   sprite: "tower-stormcloud-l1",
   chain: { maxTargets: 3, falloff: 0.5 },
+  upgrades: [
+    // L2 "Static Field" +75g: chain +1 target (→4 total) + 15 DMG (35).
+    { label: "Static Field", cost: 75, damage: 35, range: 2.2, cooldown: 1.0 },
+    // L3 "Overcharge" +150g: 20% stun chance per hit (keeps L2 chain+1/35 DMG).
+    { label: "Overcharge", cost: 150, damage: 35, range: 2.2, cooldown: 1.0 },
+  ],
 };
 
 /** Numeric `Tower.typeId` (ui8) — the index stored in the ECS component. */
@@ -110,3 +141,68 @@ export const TOWER_BY_TYPE: Readonly<Record<number, TowerConfig>> = {
  * Carries the numeric typeId so the UI can pass it straight to placement/build.
  */
 export const PLACEABLE_TOWERS: readonly TowerTypeId[] = [TowerType.Blossom, TowerType.Stormcloud];
+
+/** Highest tower level (SPEC §6.1: 3). */
+export const MAX_TOWER_LEVEL = 3;
+
+/** Current-level stats a tower fires with (TowerAI/Damage read these). */
+export interface LevelStats {
+  readonly damage: number;
+  readonly range: number;
+  readonly cooldown: number;
+  /** Packed `SPECIAL` bits for this level's projectile. */
+  readonly special: number;
+}
+
+/** `SPECIAL` bitmask a tower's projectile carries at `level` (1..3). */
+function levelSpecial(typeId: number, level: number): number {
+  if (typeId === TowerType.Blossom) {
+    let s = SPECIAL.Slow; // all levels slow
+    if (level >= 3) s |= SPECIAL.AoeSlow; // Petal Storm
+    return s;
+  }
+  if (typeId === TowerType.Stormcloud) {
+    let s = SPECIAL.Chain; // all levels chain
+    if (level >= 2) s |= SPECIAL.ChainPlus; // Static Field: +1 target
+    if (level >= 3) s |= SPECIAL.Stun; // Overcharge: stun chance
+    return s;
+  }
+  return SPECIAL.None;
+}
+
+/** Stats for `typeId` at `level` (1 = base flat fields; 2/3 = upgrade overrides). */
+export function towerLevelStats(typeId: number, level: number): LevelStats {
+  const cfg = TOWER_BY_TYPE[typeId];
+  const up = level >= 2 && cfg.upgrades ? cfg.upgrades[level - 2] : null;
+  return {
+    damage: up ? up.damage : cfg.damage,
+    range: up ? up.range : cfg.range,
+    cooldown: up ? up.cooldown : cfg.cooldown,
+    special: levelSpecial(typeId, level),
+  };
+}
+
+/** Gold invested so far in a tower at `level` (placement + upgrades applied). */
+export function totalInvested(typeId: number, level: number): number {
+  const cfg = TOWER_BY_TYPE[typeId];
+  let total = cfg.cost; // L1 placement
+  if (cfg.upgrades) for (let l = 2; l <= level; l++) total += cfg.upgrades[l - 2].cost;
+  return total;
+}
+
+/** The NEXT upgrade (label + cost) from `level`, or null at max level. */
+export function upgradeInfo(typeId: number, level: number): { label: string; cost: number } | null {
+  const cfg = TOWER_BY_TYPE[typeId];
+  if (level >= MAX_TOWER_LEVEL || !cfg.upgrades) return null;
+  const u = cfg.upgrades[level - 1]; // level 1 → upgrades[0] (L2), level 2 → upgrades[1] (L3)
+  return { label: u.label, cost: u.cost };
+}
+
+/**
+ * Sell refund (SPEC §6.7): 60% of total invested if NEVER upgraded (level 1),
+ * else 40%. Floored to whole gold.
+ */
+export function sellValue(typeId: number, level: number): number {
+  const refund = level === 1 ? 0.6 : 0.4;
+  return Math.floor(totalInvested(typeId, level) * refund);
+}

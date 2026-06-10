@@ -53,6 +53,7 @@ describe("SkillFlash component", () => {
       gameStatus: "playing",
       skills,
       boss: null,
+      selectedTower: null,
     });
 
   afterEach(() => {
@@ -122,6 +123,7 @@ describe("SkillFlash component", () => {
         gameStatus: "menu",
         skills: [skill("freeze", false)],
         boss: null,
+        selectedTower: null,
       }),
     );
     expect(flashEl()).toBeNull();

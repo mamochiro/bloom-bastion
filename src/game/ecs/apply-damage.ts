@@ -24,6 +24,14 @@ export function resetDamageRng(): void {
 }
 
 /**
+ * One roll from the shared damage RNG (0..1). Used by on-hit chance effects
+ * (Stormcloud L3 stun) so they honour the same injectable/seedable RNG as dodge.
+ */
+export function damageRoll(): number {
+  return _rng();
+}
+
+/**
  * Apply `rawDamage` to `eid`.
  *  - Dodge (Shade, §6.2): with `dodgeChance` probability the hit is fully
  *    avoided — 0 damage, no Health change.

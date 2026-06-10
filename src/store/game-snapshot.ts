@@ -62,6 +62,13 @@ export interface GameSnapshot {
    * non-null while a boss enemy is alive and clears it to null otherwise.
    */
   boss: BossSnapshot | null;
+  /**
+   * The tower the player has selected (tapped), or null when none. Drives the
+   * upgrade/sell panel (SPEC §6.1 levels + §6.7 economy). gameplay's UISyncSystem
+   * sets it from the live tower's type + level; cleared when nothing is selected
+   * or the selected tower was sold.
+   */
+  selectedTower: SelectedTowerSnapshot | null;
 }
 
 /** Live mini-boss state for the boss health bar (SPEC §6.2 bosses). */
@@ -70,6 +77,24 @@ export interface BossSnapshot {
   name: string;
   /** Remaining HP as a fraction, 0..1 (1 = full). */
   hpFraction: number;
+}
+
+/** Live selected-tower state for the upgrade/sell panel (SPEC §6.1 / §6.7). */
+export interface SelectedTowerSnapshot {
+  /** ECS entity id of the selected tower. */
+  eid: number;
+  /** Display name (e.g. "Blossom"). */
+  name: string;
+  /** Current upgrade level. */
+  level: 1 | 2 | 3;
+  /**
+   * The NEXT upgrade (label + gold cost), or null at L3 (max). The panel ALWAYS
+   * shows this until L3 and greys out the button when `gold < cost` (compare
+   * against the snapshot's `gold` — keeps the panel a pure mirror).
+   */
+  upgrade: { label: string; cost: number } | null;
+  /** Gold returned on sell (SPEC §6.7: 60% if never upgraded, else 40%). */
+  sellValue: number;
 }
 
 /**
@@ -85,6 +110,7 @@ export const DEFAULT_SNAPSHOT: GameSnapshot = {
   gameStatus: "menu",
   skills: [],
   boss: null,
+  selectedTower: null,
 };
 
 /** Internal Zustand store. Holds ONLY a GameSnapshot — no actions, no logic. */
@@ -121,3 +147,5 @@ export const useGameStatus = (): GameSnapshot["gameStatus"] =>
   useSnapshotStore((s) => s.gameStatus);
 export const useSkills = (): readonly SkillSnapshot[] => useSnapshotStore((s) => s.skills);
 export const useBoss = (): BossSnapshot | null => useSnapshotStore((s) => s.boss);
+export const useSelectedTower = (): SelectedTowerSnapshot | null =>
+  useSnapshotStore((s) => s.selectedTower);

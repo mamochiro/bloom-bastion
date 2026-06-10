@@ -85,7 +85,8 @@ bloom-bastion/
 ## 🎯 Current Status
 
 **Full playable campaign.** Start screen → pick difficulty (Casual/Normal/Hardcore,
-§6.5) → place towers (**Blossom** slow 50g / **Stormcloud** chain 100g) → fight
+§6.5) → place + **upgrade L1→L2→L3 / sell** (tap tower → UpgradePanel, §6.1/§6.7)
+towers (**Blossom** slow 50g / **Stormcloud** chain 100g) → fight
 **20 §6.3-faithful waves** of **all 8 §6.2 enemies** (Grub, Snail/armor, Flutter/flying,
 Shade/dodge, Plushy/regen, Splitter/split, + bosses **Candy King** @5/10/15 and
 **Neon Dragon** @20) → use **3 skills** (Meteor + Freeze@5 + Gold Rush@10) → win
@@ -93,14 +94,15 @@ Shade/dodge, Plushy/regen, Splitter/split, + bosses **Candy King** @5/10/15 and
 boss-phase system, difficulty scaling, real SVG sprite art, **VFX** (hit-flash, death
 bursts, floating gold, Meteor impact, idle sprite motion, dragon enrage tint, skill
 screen flash) + **§4.5 adaptive quality**. `bun run check` green (Vitest 228/228),
-~240KB gz. **Pipeline 10/10 systems REAL — no stubs** (AnimationSystem drives the VFX).
+~241KB gz. **Pipeline 10/10 systems REAL — no stubs** (AnimationSystem drives the VFX).
+Tower upgrades L1→L2→L3 + sell wired for the 2 built towers (Vitest 247/247).
 **M0 COMPLETE** — first Playwright E2E happy-path (`tests/e2e/happy-path.spec.ts`,
 mobile Pixel-5) is GREEN: real-browser runtime proof that the game boots (Pixi renders
 a real `<canvas>`) and plays a live wave with ZERO uncaught exceptions (`bun run test:e2e`).
 
 **Next up (all polish/expansion — core game is complete):** Endless mode · towers 3–6
-+ L2/L3 · Settings Auto/Low/High quality UI (§4.5) · enemy-palette token ADR ·
-balance playtest tuning.
+(Sugar Cannon/Luna/Hive/Bubbler — L2/L3 land with each) · Settings Auto/Low/High
+quality UI (§4.5) · enemy-palette token ADR · balance playtest tuning.
 **SPEC clarifications flagged:** Stormcloud chain radius (2.5 tiles); Meteor damage
 raw-vs-armor; Neon Dragon "Plushies on tower-death" (needs a tower-death mechanic).
 

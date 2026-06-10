@@ -6,6 +6,7 @@ import { SkillBar } from "./SkillBar";
 import { SkillFlash } from "./SkillFlash";
 import { StartScreen } from "./StartScreen";
 import { TowerPicker } from "./TowerPicker";
+import { UpgradePanel } from "./UpgradePanel";
 
 /**
  * Heads-up display (SPEC §8, mockup `design-assets/screenshots/fix_hud.png` —
@@ -34,6 +35,7 @@ export function Hud() {
       <TowerPicker />
       {status === "playing" && <SkillBar />}
       {status === "playing" && <BossBar />}
+      {status === "playing" && <UpgradePanel />}
       {status === "menu" && <StartScreen />}
       {status === "won" && <VictoryView gold={gold} wave={wave} />}
       {status === "lost" && <DefeatView gold={gold} wave={wave} />}

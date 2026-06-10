@@ -14,6 +14,7 @@ import {
 } from "./config/difficulty";
 import { setPhase } from "./ecs/game-state";
 import { initResources } from "./ecs/resources";
+import { resetSelection } from "./ecs/selection";
 import { resetSkills } from "./ecs/skills";
 import { releaseEnemy } from "./entities/create-enemy";
 import { releaseProjectile } from "./entities/create-projectile";
@@ -43,6 +44,7 @@ export function startGame(world: World, difficulty: Difficulty): void {
   SpawnSystem.reset(); // wave 1
   resetSkills(); // cooldowns, buffs, clearedWaves → 0
   resetBossSummon(); // Neon Dragon summon timer
+  resetSelection(); // clear tower selection
   clearBuild();
   setPhase("playing");
 }
@@ -59,6 +61,7 @@ export function restartGame(world: World): void {
   SpawnSystem.reset();
   resetSkills(); // cooldowns, buffs, clearedWaves → 0
   resetBossSummon(); // Neon Dragon summon timer
+  resetSelection(); // clear tower selection
   const d = DIFFICULTY[getActiveDifficulty()];
   initResources(world, d.gold, d.lives); // same difficulty's start (SPEC §6.5)
   clearBuild();

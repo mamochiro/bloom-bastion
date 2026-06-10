@@ -41,6 +41,9 @@ function makeDeps() {
     consumeSkillActivation: () => null,
     getSkillAim: () => null,
     clearSkillAim: () => {},
+    consumeTowerUpgrade: () => false,
+    consumeTowerSell: () => false,
+    consumeClearSelection: () => false,
     consumeRestart: () => {
       if (!state.restart) return false;
       state.restart = false;

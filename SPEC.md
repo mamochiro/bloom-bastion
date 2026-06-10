@@ -327,6 +327,20 @@ User can also force quality via Settings: Auto / Low / High.
 - **L2 — Tidal Wave (+70g):** +DMG, push 1.0 tile
 - **L3 — Tsunami (+140g):** Line attack hits all in front row
 
+#### Upgrade implementation values (Blossom + Stormcloud built; NOT-LOCKED slice numbers)
+
+§6.1 leaves some upgrade magnitudes unspecified; the implemented values (flagged
+in `config/towers.ts` / `config/combat.ts`, tune freely):
+
+- **Blossom L2 "faster fire":** 1.2s → **1.0s** fire interval.
+- **Blossom L3 "Petal Storm" AoE:** primary's damage + 40%/2s slow also splash to
+  the **3 nearest** enemies within **1 tile**.
+- **Stormcloud L3 "Overcharge" stun:** 20% chance (LOCKED) → **1.0s** stun
+  (duration NOT in §6.1).
+
+Sell refund (§6.7) is **derived** from typeId+level — placement + applied-upgrade
+costs — no stored "invested" field. 60% if never upgraded, else 40% (floored).
+
 ### 6.2 Enemies (8 types)
 
 | ID | Emoji | Name | HP | Speed | Reward | Special |

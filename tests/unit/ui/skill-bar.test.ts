@@ -107,6 +107,7 @@ describe("SkillBar container — taps drive the command store", () => {
       gameStatus: "playing",
       skills: [],
       boss: null,
+      selectedTower: null,
     });
     container?.remove();
     container = null;
@@ -131,6 +132,7 @@ describe("SkillBar container — taps drive the command store", () => {
         },
       ],
       boss: null,
+      selectedTower: null,
     });
     container = document.createElement("div");
     document.body.appendChild(container);

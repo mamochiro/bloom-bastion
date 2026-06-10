@@ -42,9 +42,26 @@ export const CHAIN_FALLOFF = 0.5;
 export const CHAIN_RADIUS_TILES = 2.5;
 
 /**
+ * Overcharge stun (Stormcloud L3, SPEC §6.1 "20% stun chance per hit"). CHANCE
+ * is LOCKED to §6.1; DURATION is NOT-LOCKED (§6.1 gives no number) — 1.0s flag.
+ * The roll uses the EXISTING injectable damage RNG (apply-damage `damageRoll`).
+ */
+export const STUN_CHANCE = 0.2;
+export const STUN_DURATION_S = 1.0;
+
+/**
+ * Petal Storm AoE (Blossom L3, SPEC §6.1 "Multi-target (3), AoE on hit"). The
+ * primary's damage + 40%/2s slow also splash to up to PETAL_MAX_TARGETS nearest
+ * OTHER enemies within PETAL_RADIUS. Both are NOT-LOCKED (§6.1 gives no radius)
+ * — radius 1.0 tile, 3 targets are slice values (flag). Reuses the nearest-N scan.
+ */
+export const PETAL_MAX_TARGETS = 3;
+export const PETAL_RADIUS_TILES = 1.0;
+
+/**
  * Projectile special-effect bit flags, packed into `Projectile.special` (ui8).
- * The TowerAI sets them from tower config; DamageSystem reads them on landing.
- * Distinct bits so a projectile can carry several effects without collision.
+ * The TowerAI sets them from the tower's CURRENT-LEVEL stats; DamageSystem reads
+ * them on landing. Distinct bits so a projectile can carry several effects.
  */
 export const SPECIAL = {
   /** No on-hit effect. */
@@ -53,4 +70,10 @@ export const SPECIAL = {
   Slow: 1 << 0,
   /** Arcs chain lightning to nearby enemies on hit (Stormcloud). */
   Chain: 1 << 1,
+  /** +1 chain target (Stormcloud L2 "Static Field"). */
+  ChainPlus: 1 << 2,
+  /** 20% stun chance on hit (Stormcloud L3 "Overcharge"). */
+  Stun: 1 << 3,
+  /** AoE damage + slow splash (Blossom L3 "Petal Storm"). */
+  AoeSlow: 1 << 4,
 } as const;

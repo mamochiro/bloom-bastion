@@ -22,12 +22,18 @@
  * single grass cell always leaves a valid route; a true reachability check
  * comes with arbitrary maps.
  */
-import type { World } from "../../engine/ecs/world";
+import { Position, type World, towerQuery } from "../../engine/ecs/world";
 import { consumeTap, pointerWorldX, pointerWorldY } from "../../engine/input/input";
 import type { System } from "../../engine/loop";
 import { COST_BLOCKED, COST_GRASS } from "../../engine/pathfinding/flow-field";
 import { clearBuild, getSelectedBuild } from "../../store/build";
-import { consumeRestart, consumeStart } from "../../store/commands";
+import {
+  consumeClearSelection,
+  consumeRestart,
+  consumeStart,
+  consumeTowerSell,
+  consumeTowerUpgrade,
+} from "../../store/commands";
 import { getSelectedDifficulty } from "../../store/difficulty";
 import { clearSkillAim, consumeSkillActivation, getSkillAim } from "../../store/skills";
 import type { Difficulty } from "../config/difficulty";
@@ -35,13 +41,15 @@ import type { SkillType } from "../config/skills";
 import { TOWER_BY_TYPE } from "../config/towers";
 import { isSimPaused } from "../ecs/game-state";
 import { addGold, getGold } from "../ecs/resources";
+import { clearSelectedTower, getSelectedTower, setSelectedTower } from "../ecs/selection";
 import { activateSkill } from "../ecs/skills";
 import { placeTower } from "../entities/create-tower";
 import { CELL, GRID_H, GRID_W } from "../map/coords";
 import { buildLevel, cellIndex, costGrid } from "../map/level-1";
 import { restartGame, startGame } from "../restart";
+import { sellTower, upgradeTower } from "../tower-actions";
 
-/** The slice of input/build/placement/skills the system depends on (injectable for tests). */
+/** The slice of input/build/placement/skills/towers the system depends on (injectable for tests). */
 export interface InputDeps {
   /** True ONCE when "Play" was pressed on the start screen (edge-consume). */
   consumeStart(): boolean;
@@ -55,6 +63,12 @@ export interface InputDeps {
   getSkillAim(): SkillType | null;
   /** Clear the aim mode after the aimed tap resolves. */
   clearSkillAim(): void;
+  /** True ONCE when the panel "Upgrade" button was pressed (edge-consume). */
+  consumeTowerUpgrade(): boolean;
+  /** True ONCE when the panel "Sell" button was pressed (edge-consume). */
+  consumeTowerSell(): boolean;
+  /** True ONCE when the panel was closed / deselected (edge-consume). */
+  consumeClearSelection(): boolean;
   /** True ONCE per tap (edge-consume). */
   consumeTap(): boolean;
   /** Tap position in WORLD px (ECS Position space). */
@@ -74,12 +88,26 @@ const liveDeps: InputDeps = {
   consumeSkillActivation,
   getSkillAim,
   clearSkillAim,
+  consumeTowerUpgrade,
+  consumeTowerSell,
+  consumeClearSelection,
   consumeTap,
   pointerWorldX,
   pointerWorldY,
   getSelectedBuild,
   clearBuild,
 };
+
+/** Find a placed tower occupying grid cell (gx,gy), or -1. Zero-alloc scan. */
+function towerAt(world: World, gx: number, gy: number): number {
+  const towers = towerQuery(world);
+  for (let i = 0; i < towers.length; i++) {
+    const t = towers[i];
+    if (Math.floor(Position.x[t] / CELL) === gx && Math.floor(Position.y[t] / CELL) === gy)
+      return t;
+  }
+  return -1;
+}
 
 /** Build an InputSystem over `deps` (defaults to the live engine/ui wiring). */
 export function createInputSystem(deps: InputDeps = liveDeps): System {
@@ -107,10 +135,29 @@ export function createInputSystem(deps: InputDeps = liveDeps): System {
       return world;
     }
 
+    // Tower panel commands act on the selected tower (no tap needed; true-once).
+    if (deps.consumeTowerUpgrade()) {
+      const s = getSelectedTower();
+      if (s >= 0) upgradeTower(world, s); // gold-guarded inside; no-op at max/unaffordable
+      return world;
+    }
+    if (deps.consumeTowerSell()) {
+      const s = getSelectedTower();
+      if (s >= 0) {
+        sellTower(world, s);
+        clearSelectedTower();
+      }
+      return world;
+    }
+    if (deps.consumeClearSelection()) {
+      clearSelectedTower();
+      return world;
+    }
+
     if (!tapped) return world; // no tap this frame → zero work
 
     // A canvas tap while a skill is in AIM mode (Meteor) is the skill's TARGET —
-    // it takes priority over tower placement.
+    // it takes priority over tower selection/placement.
     const aim = deps.getSkillAim();
     if (aim !== null) {
       activateSkill(world, aim, deps.pointerWorldX(), deps.pointerWorldY());
@@ -118,25 +165,40 @@ export function createInputSystem(deps: InputDeps = liveDeps): System {
       return world;
     }
 
-    const sel = deps.getSelectedBuild();
-    if (sel === null) return world; // tap but nothing selected → ignore
-
     const gx = Math.floor(deps.pointerWorldX() / CELL);
     const gy = Math.floor(deps.pointerWorldY() / CELL);
-    if (gx < 0 || gy < 0 || gx >= GRID_W || gy >= GRID_H) return world; // off-map
-
+    if (gx < 0 || gy < 0 || gx >= GRID_W || gy >= GRID_H) {
+      clearSelectedTower(); // off-map tap → close panel
+      return world;
+    }
     const idx = cellIndex(gx, gy);
-    if (costGrid[idx] !== COST_GRASS) return world; // not grass / occupied / lane
 
-    const cfg = TOWER_BY_TYPE[sel];
-    if (!cfg) return world; // unknown tower type
-    if (getGold(world) < cfg.cost) return world; // can't afford → no spend, no place
+    // (a) Tap on a cell occupied by a tower → SELECT it (open panel). Priority.
+    const towerEid = towerAt(world, gx, gy);
+    if (towerEid >= 0) {
+      setSelectedTower(towerEid);
+      return world;
+    }
 
-    addGold(world, -cfg.cost); // spend
-    placeTower(world, sel, gx, gy);
-    costGrid[idx] = COST_BLOCKED; // tower footprint walls the cell
-    buildLevel(); // recompute flow field over the updated grid (cold path)
-    deps.clearBuild();
+    // (b) Tap on buildable grass WITH an active build-intent → place.
+    const sel = deps.getSelectedBuild();
+    if (sel !== null) {
+      if (costGrid[idx] !== COST_GRASS) return world; // not grass → ignore (build kept)
+      const cfg = TOWER_BY_TYPE[sel];
+      if (!cfg) return world; // unknown tower type
+      if (getGold(world) < cfg.cost) return world; // can't afford → no spend, build kept
+
+      addGold(world, -cfg.cost); // spend
+      placeTower(world, sel, gx, gy);
+      costGrid[idx] = COST_BLOCKED; // tower footprint walls the cell
+      buildLevel(); // recompute flow field over the updated grid (cold path)
+      deps.clearBuild();
+      clearSelectedTower();
+      return world;
+    }
+
+    // (c) Tap elsewhere with no build intent → clear the selection (close panel).
+    clearSelectedTower();
     return world;
   };
 }

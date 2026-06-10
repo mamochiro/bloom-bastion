@@ -19,6 +19,7 @@ describe("game-snapshot store", () => {
       gameStatus: "menu",
       skills: [],
       boss: null,
+      selectedTower: null,
     });
   });
 
@@ -31,6 +32,7 @@ describe("game-snapshot store", () => {
       gameStatus: "playing",
       skills: [],
       boss: null,
+      selectedTower: null,
     };
     setSnapshot(next);
     expect(getSnapshot()).toEqual(next);

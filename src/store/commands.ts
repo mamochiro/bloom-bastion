@@ -11,11 +11,20 @@ interface CommandState {
   startRequested: boolean;
   /** Set by the "Play Again" button; cleared once gameplay consumes it. */
   restartRequested: boolean;
+  /** Set by the tower panel's "Upgrade" button; acts on the selected tower. */
+  upgradeRequested: boolean;
+  /** Set by the tower panel's "Sell" button; acts on the selected tower. */
+  sellRequested: boolean;
+  /** Set by the tower panel's close / deselect; clears the selection. */
+  clearSelectionRequested: boolean;
 }
 
 const useCommandStore = create<CommandState>()(() => ({
   startRequested: false,
   restartRequested: false,
+  upgradeRequested: false,
+  sellRequested: false,
+  clearSelectionRequested: false,
 }));
 
 /** Request a run start from the menu (imperative — "Play" handler). */
@@ -50,6 +59,48 @@ export const consumeRestart = (): boolean => {
   const { restartRequested } = useCommandStore.getState();
   if (restartRequested) {
     useCommandStore.setState({ restartRequested: false });
+    return true;
+  }
+  return false;
+};
+
+/** Request upgrading the SELECTED tower (imperative — panel "Upgrade" handler). */
+export const requestTowerUpgrade = (): void => {
+  useCommandStore.setState({ upgradeRequested: true });
+};
+
+/** Consume the upgrade request (gameplay's InputSystem). True once per request. */
+export const consumeTowerUpgrade = (): boolean => {
+  if (useCommandStore.getState().upgradeRequested) {
+    useCommandStore.setState({ upgradeRequested: false });
+    return true;
+  }
+  return false;
+};
+
+/** Request selling the SELECTED tower (imperative — panel "Sell" handler). */
+export const requestTowerSell = (): void => {
+  useCommandStore.setState({ sellRequested: true });
+};
+
+/** Consume the sell request (gameplay's InputSystem). True once per request. */
+export const consumeTowerSell = (): boolean => {
+  if (useCommandStore.getState().sellRequested) {
+    useCommandStore.setState({ sellRequested: false });
+    return true;
+  }
+  return false;
+};
+
+/** Request clearing the tower selection (imperative — panel close / deselect). */
+export const requestClearSelection = (): void => {
+  useCommandStore.setState({ clearSelectionRequested: true });
+};
+
+/** Consume the clear-selection request (gameplay's InputSystem). True once. */
+export const consumeClearSelection = (): boolean => {
+  if (useCommandStore.getState().clearSelectionRequested) {
+    useCommandStore.setState({ clearSelectionRequested: false });
     return true;
   }
   return false;

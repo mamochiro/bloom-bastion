@@ -62,6 +62,7 @@ describe("BossBar — gated by snapshot + phase (in Hud)", () => {
       gameStatus: "playing",
       skills: [],
       boss: null,
+      selectedTower: null,
     });
     container?.remove();
     container = null;
@@ -76,6 +77,7 @@ describe("BossBar — gated by snapshot + phase (in Hud)", () => {
       gameStatus: "playing",
       skills: [],
       boss,
+      selectedTower: null,
     });
     container = document.createElement("div");
     document.body.appendChild(container);

@@ -82,6 +82,7 @@ describe("Hud container — end-game phase gating", () => {
       gameStatus: "playing",
       skills: [],
       boss: null,
+      selectedTower: null,
     });
     container?.remove();
     container = null;
@@ -96,6 +97,7 @@ describe("Hud container — end-game phase gating", () => {
       gameStatus: status,
       skills: [],
       boss: null,
+      selectedTower: null,
     });
     container = document.createElement("div");
     document.body.appendChild(container);

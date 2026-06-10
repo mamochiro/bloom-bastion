@@ -14,13 +14,21 @@
  * running while the sim is paused so the overlay still updates after the run
  * ends.
  */
-import { Enemy, Health, type World, enemyQuery } from "../../engine/ecs/world";
+import { hasComponent } from "bitecs";
+import { Enemy, Health, Tower, type World, enemyQuery } from "../../engine/ecs/world";
 import type { System } from "../../engine/loop";
-import { type BossSnapshot, type GameSnapshot, setSnapshot } from "../../store/game-snapshot";
+import {
+  type BossSnapshot,
+  type GameSnapshot,
+  type SelectedTowerSnapshot,
+  setSnapshot,
+} from "../../store/game-snapshot";
 import { ENEMY_BY_TYPE } from "../config/enemies";
 import { SKILL_ORDER } from "../config/skills";
+import { TOWER_BY_TYPE, sellValue, upgradeInfo } from "../config/towers";
 import { getPhase } from "../ecs/game-state";
 import { getGold, getLives } from "../ecs/resources";
+import { getSelectedTower } from "../ecs/selection";
 import { cooldownFraction, cooldownRemaining, isReady, isUnlocked } from "../ecs/skills";
 import { SpawnSystem } from "./spawn";
 
@@ -41,6 +49,21 @@ function findBoss(world: World): BossSnapshot | null {
   return null;
 }
 
+/** The selected tower's panel state (SPEC §6.1/§6.7), or null when none / sold. */
+function buildSelectedTower(world: World): SelectedTowerSnapshot | null {
+  const eid = getSelectedTower();
+  if (eid < 0 || !hasComponent(world, Tower, eid)) return null; // none / sold
+  const typeId = Tower.typeId[eid];
+  const level = Tower.level[eid] as 1 | 2 | 3;
+  return {
+    eid,
+    name: TOWER_BY_TYPE[typeId].name,
+    level,
+    upgrade: upgradeInfo(typeId, level), // null at L3
+    sellValue: sellValue(typeId, level),
+  };
+}
+
 /** Build the HUD mirror from authoritative ECS / game state. Allocates one object. */
 export function buildSnapshot(world: World): GameSnapshot {
   return {
@@ -59,6 +82,7 @@ export function buildSnapshot(world: World): GameSnapshot {
       unlocked: isUnlocked(type),
     })),
     boss: findBoss(world), // live mini-boss HP bar (SPEC §6.2), or null
+    selectedTower: buildSelectedTower(world), // upgrade/sell panel (SPEC §6.1/§6.7)
   };
 }
 

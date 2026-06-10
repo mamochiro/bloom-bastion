@@ -16,6 +16,7 @@ import { DEFAULT_DIFFICULTY, setActiveDifficulty } from "../../../src/game/confi
 import { resetDamageRng } from "../../../src/game/ecs/apply-damage";
 import { resetPhase } from "../../../src/game/ecs/game-state";
 import { _resetResourcesCache } from "../../../src/game/ecs/resources";
+import { resetSelection } from "../../../src/game/ecs/selection";
 import { resetSkills } from "../../../src/game/ecs/skills";
 import { releaseEnemy } from "../../../src/game/entities/create-enemy";
 import { releaseProjectile } from "../../../src/game/entities/create-projectile";
@@ -36,4 +37,5 @@ export function resetGameWorld(world: World): void {
   resetDamageRng(); // dodge RNG back to Math.random
   resetBossSummon(); // Neon Dragon summon timer
   resetVfx(); // VFX sink back to no-op
+  resetSelection(); // clear tower selection
 }
