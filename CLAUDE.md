@@ -9,7 +9,8 @@
 
 **Bloom Bastion** — Mobile-first 2D tower defense game.
 Style: "Cute but deadly" — pastel + neon glow on dark battlefield.
-Status: **Pre-implementation** (design done, build starting)
+Status: **Feature-complete & playable** — full campaign + Endless mode, all 6 towers ×3
+levels, 8 enemies + 2 bosses, 3 skills, Settings/Quality. Now in polish/expansion.
 
 ## 📚 Required Reading Order
 
@@ -96,23 +97,25 @@ procedurally-scaled waves past 20 (HP ×1.15ⁿ), no win, ends on lives 0 → "R
 Wave Reached: N". Data-driven waves (ADR-0003), wave-clear economy,
 boss-phase system, difficulty scaling, real SVG sprite art, **VFX** (hit-flash, death
 bursts, floating gold, Meteor impact, idle sprite motion, dragon enrage tint, skill
-screen flash) + **§4.5 adaptive quality**. `bun run check` green (Vitest 228/228),
-~241KB gz. **Pipeline 10/10 systems REAL — no stubs** (AnimationSystem drives the VFX).
+screen flash) + **§4.5 adaptive quality**. **Pipeline 10/10 systems REAL — no stubs**
+(AnimationSystem drives the VFX).
 Tower upgrades L1→L2→L3 + sell wired; **ALL 6 towers built × 3 levels = 18 configs
 (full §6.1 roster COMPLETE)** + **Endless mode** + **Settings/Quality UI** (§4.5
 Auto/Low/High override, gear on StartScreen) — Vitest 311/311, ~245KB gz, E2E 4 specs.
 `Projectile.special` ui16 (14/16 bits).
 **Pooled friendly `Minion` entity** (engine: Minion component + minionPool 64 +
-minionQuery; sprite 400-band centered) drives the Hive's bees. **Tracked follow-up:**
-per-projectile slow magnitude+duration (Sugar L3 wants 20%, Bubbler 30% — both reuse
-the global 40% for now). Next frontier: Endless mode · Settings quality UI (§4.5).
+minionQuery; sprite 400-band centered) drives the Hive's bees. **Per-application
+slow DONE** (was tracked follow-up): each slow source carries its own magnitude+
+duration as data (`TOWERS.<id>.slow`) via the shared `applySlow` → `Status.slowFactor`
+(engine: one new field) — Blossom 40%/2s · Sugar L3 20%/1s · Bubbler 30%/1.5s, all
+§6.1-accurate; strongest-wins/refresh-to-longer stacking (§6.1 note).
 **M0 COMPLETE** — first Playwright E2E happy-path (`tests/e2e/happy-path.spec.ts`,
 mobile Pixel-5) is GREEN: real-browser runtime proof that the game boots (Pixi renders
 a real `<canvas>`) and plays a live wave with ZERO uncaught exceptions (`bun run test:e2e`).
 
-**Next up (all polish/expansion — core game is complete):** Endless mode · towers 3–6
-(Sugar Cannon/Luna/Hive/Bubbler — L2/L3 land with each) · Settings Auto/Low/High
-quality UI (§4.5) · enemy-palette token ADR · balance playtest tuning.
+**Next up (all polish/expansion — core game is complete):** enemy-palette token ADR ·
+balance playtest tuning · audio (Howler — needs sound assets, then Settings SFX/Music/
+Haptics) · pause menu. (Done: all 6 towers ×3 levels · upgrades+sell · Endless · Settings/Quality.)
 **SPEC clarifications flagged:** Stormcloud chain radius (2.5 tiles); Meteor damage
 raw-vs-armor; Neon Dragon "Plushies on tower-death" (needs a tower-death mechanic).
 

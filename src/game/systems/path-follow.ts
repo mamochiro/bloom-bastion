@@ -10,9 +10,12 @@
  *   dir == (0,0) at goal → arrived → cost 1 life, then releaseEnemy
  *   else                 → velocity = dir · effectiveSpeed; integrate by dt
  *
- * Slow: while `gameTime() < Status.slowedUntil`, speed is scaled by
- * `(1 - SLOW_REDUCTION)` (Blossom 40%). Iterates backward so releasing at the
- * goal (swap-pop on the query array) never skips a follower.
+ * Slow: while `gameTime() < Status.slowedUntil`, speed is scaled by the
+ * per-application `Status.slowFactor` (e.g. 0.6 for Blossom's 40%, 0.8 for Sugar
+ * L3's 20%, 0.7 for Bubbler's 30%) — set by `applySlow` on hit. The factor is
+ * read ONLY while the timer is live, so a stale value never applies. Iterates
+ * backward so releasing at the goal (swap-pop on the query array) never skips a
+ * follower.
  */
 import {
   Enemy,
@@ -27,7 +30,6 @@ import {
 import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
 import { flowField, flowIndexAt } from "../../engine/pathfinding/flow-field";
-import { SLOW_REDUCTION } from "../config/combat";
 import { getDifficultyMods } from "../config/difficulty";
 import { ENEMY_BY_TYPE, ENEMY_FLAGS } from "../config/enemies";
 import { isSimPaused } from "../ecs/game-state";
@@ -125,9 +127,10 @@ export const PathFollowSystem: System = (world: World, dt: number): World => {
     }
 
     let speedPx = (cfg ? cfg.speed : 0) * CELL * speedMult * phaseSpeedMult; // tiles/s → px/s
-    // Slow (Blossom) — unless slow-immune (Candy King berserk, SPEC §6.2).
+    // Slow — per-application factor (set by applySlow), unless slow-immune (Candy
+    // King berserk, SPEC §6.2). Gated on the live timer so a stale factor is unused.
     if ((flags & ENEMY_FLAGS.SlowImmune) === 0 && now < Status.slowedUntil[eid]) {
-      speedPx *= 1 - SLOW_REDUCTION;
+      speedPx *= Status.slowFactor[eid];
     }
 
     const vx = dx * speedPx;

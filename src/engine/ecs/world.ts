@@ -79,6 +79,12 @@ export const Animation = defineComponent({ riveId: Types.ui16, state: Types.ui8 
 /** Status timers (game-time seconds) for slow / stun / damage-over-time. */
 export const Status = defineComponent({
   slowedUntil: Types.f32,
+  // FLAG (authorized engine touch, like the prior Projectile.special ui16 widen):
+  // current speed MULTIPLIER while slowed (e.g. 0.6 = −40%). Lets slow be
+  // per-application (Blossom 40% / Sugar L3 20% / Bubbler 30%) instead of one
+  // global reduction. Read by PathFollow only while slowedUntil > now (gated, so a
+  // stale value is never read). No engine LOGIC change — just the field.
+  slowFactor: Types.f32,
   stunnedUntil: Types.f32,
   dotUntil: Types.f32,
 });

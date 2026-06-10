@@ -19,9 +19,11 @@ export const PROJECTILE_SPEED = 420;
 export const HIT_RADIUS = 8;
 
 /**
- * Slow applied by Blossom (SPEC §6.1: "40% speed reduction, 2s"). LOCKED to §6.
- * Single slow source this slice; when more slowers exist, carry magnitude on the
- * projectile (or a Status magnitude field) instead of these module constants.
+ * Blossom's slow magnitude (SPEC §6.1: "40% speed reduction, 2s"). LOCKED to §6.
+ * Slow is now PER-APPLICATION: the canonical numbers live in tower config
+ * (`TOWERS.blossom.slow`) and are stamped via `applySlow` (ecs/slow.ts) into
+ * `Status.slowFactor` + `Status.slowedUntil`; PathFollow reads the factor. These
+ * exports remain as the shared Blossom reference (config + tests import them).
  */
 export const SLOW_REDUCTION = 0.4;
 export const SLOW_DURATION_S = 2;
@@ -62,14 +64,12 @@ export const PETAL_RADIUS_TILES = 1.0;
  * AoE splash (Sugar Cannon, SPEC §6.1 "1.5-tile splash radius"). UNCAPPED — hits
  * EVERY ground enemy in radius (not the capped nearest-N). L2 "Bigger Boom"
  * grows it to 2.0 tiles. No damage falloff (NOT-LOCKED: §6.1 gives none — full
- * damage to all). L3 "Sticky Sugar" adds a short slow to splashed enemies for
- * STICKY_SLOW_DURATION_S — reusing the shared slow path, so the *reduction* is
- * the game's single global SLOW_REDUCTION (40%); SPEC's "20%" would need a
- * per-enemy slow-magnitude field (deferred) — NOT-LOCKED, flagged.
+ * damage to all). L3 "Sticky Sugar" adds its OWN per-application slow (20%/1s,
+ * SPEC §6.1) — `TOWERS.sugarcannon.slow`, applied via `applySlow`. (The old
+ * global-40% deviation is GONE: slow is now per-application.)
  */
 export const SPLASH_RADIUS_TILES = 1.5;
 export const SPLASH_RADIUS_BIG_TILES = 2.0;
-export const STICKY_SLOW_DURATION_S = 1.0;
 
 /**
  * Luna Crystal (sniper). AntiArmor: +30% damage vs ARMORED targets (LOCKED to
@@ -85,12 +85,11 @@ export const BEAM_WIDTH_TILES = 0.4;
 
 /**
  * Bubbler (crowd-control). Knockback shoves the target BACKWARD along its reverse
- * flow-field (0.5 tile base, 1.0 with Tidal Wave). Bubbler's slow REUSES the
- * shared Slow path → global 40% reduction / 2s duration (the existing convention)
- * — §6.1's "30% / 1s" would need a per-projectile slow-magnitude+duration field
- * (now wanted by Sugar L3 + Bubbler → tracked as a follow-up); NOT-LOCKED, flagged.
- * Tsunami (L3) is an uncapped LINE through the target along the lane axis:
- * LINE_HALF_WIDTH perpendicular, LINE_LENGTH along (both NOT-LOCKED slice values).
+ * flow-field (0.5 tile base, 1.0 with Tidal Wave). Bubbler's slow is now its OWN
+ * per-application magnitude (30% / 1.5s — `TOWERS.bubbler.slow`, via `applySlow`):
+ * SPEC §6.1 locks the 30%, the 1.5s duration is a slice value (FLAG). Tsunami (L3)
+ * is an uncapped LINE through the target along the lane axis: LINE_HALF_WIDTH
+ * perpendicular, LINE_LENGTH along (both NOT-LOCKED slice values).
  */
 export const PUSH_TILES = 0.5;
 export const PUSH_BIG_TILES = 1.0;

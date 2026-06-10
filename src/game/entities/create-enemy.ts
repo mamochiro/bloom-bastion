@@ -76,6 +76,7 @@ export function spawnEnemy(world: World, typeId: number, x: number, y: number): 
   // Status timers — reset so a recycled eid carries no stale slow/stun/dot.
   addComponent(world, Status, eid);
   Status.slowedUntil[eid] = 0;
+  Status.slowFactor[eid] = 0; // gated by slowedUntil, but cleared for cleanliness
   Status.stunnedUntil[eid] = 0;
   Status.dotUntil[eid] = 0;
 

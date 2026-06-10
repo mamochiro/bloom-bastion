@@ -34,11 +34,9 @@ import {
   PETAL_RADIUS_TILES,
   PUSH_BIG_TILES,
   PUSH_TILES,
-  SLOW_DURATION_S,
   SPECIAL,
   SPLASH_RADIUS_BIG_TILES,
   SPLASH_RADIUS_TILES,
-  STICKY_SLOW_DURATION_S,
   STUN_CHANCE,
   STUN_DURATION_S,
   TSUNAMI_HALF_WIDTH_TILES,
@@ -46,9 +44,11 @@ import {
 } from "../config/combat";
 import { ENEMY_BY_TYPE, ENEMY_FLAGS, EnemyType } from "../config/enemies";
 import { TINT } from "../config/tokens";
+import { type SlowEffect, TOWER_BY_TYPE, TowerType } from "../config/towers";
 import { applyDamage, damageRoll, isArmored } from "../ecs/apply-damage";
 import { hitQuery } from "../ecs/components";
 import { isSimPaused } from "../ecs/game-state";
+import { applySlow } from "../ecs/slow";
 import { spawnEnemy } from "../entities/create-enemy";
 import { releaseProjectile } from "../entities/create-projectile";
 import { CELL } from "../map/coords";
@@ -59,6 +59,17 @@ const CHAIN_RADIUS_SQ = (CHAIN_RADIUS_TILES * CELL) ** 2;
 const PETAL_RADIUS_SQ = (PETAL_RADIUS_TILES * CELL) ** 2;
 const SPLASH_RADIUS_SQ = (SPLASH_RADIUS_TILES * CELL) ** 2;
 const SPLASH_RADIUS_BIG_SQ = (SPLASH_RADIUS_BIG_TILES * CELL) ** 2;
+
+// Per-application slow magnitudes (SPEC §6.1) read ONCE from tower config (data,
+// not hardcoded). Blossom 40%/2s · Sugar L3 "Sticky Sugar" 20%/1s · Bubbler
+// 30%/1.5s. The `??` fallbacks satisfy the optional-`slow` type; these towers
+// always define it. FLAG: the projectile carries only SPECIAL bits (no source
+// tower), so the SPECIAL.Slow branch disambiguates Blossom vs Bubbler by the
+// Push bit (Bubbler-only) — see below.
+const FALLBACK_SLOW: SlowEffect = { speedReduction: 0.4, durationS: 2 };
+const BLOSSOM_SLOW = TOWER_BY_TYPE[TowerType.Blossom].slow ?? FALLBACK_SLOW;
+const SUGAR_SLOW = TOWER_BY_TYPE[TowerType.SugarCannon].slow ?? FALLBACK_SLOW;
+const BUBBLER_SLOW = TOWER_BY_TYPE[TowerType.Bubbler].slow ?? FALLBACK_SLOW;
 
 /**
  * Boss HP-threshold phases (SPEC §6.2). After a boss takes damage, trigger any
@@ -173,10 +184,10 @@ function chainLightning(
 }
 
 /**
- * Petal Storm (Blossom L3): the primary's `damage` + 40%/2s slow splash to the
- * up-to-`PETAL_MAX_TARGETS` nearest OTHER enemies within `PETAL_RADIUS`.
+ * Petal Storm (Blossom L3): the primary's `damage` + Blossom's 40%/2s slow splash
+ * to the up-to-`PETAL_MAX_TARGETS` nearest OTHER enemies within `PETAL_RADIUS`.
  */
-function petalStorm(world: World, primary: number, damage: number, until: number): void {
+function petalStorm(world: World, primary: number, damage: number): void {
   const k = findNearest(
     world,
     primary,
@@ -188,7 +199,7 @@ function petalStorm(world: World, primary: number, damage: number, until: number
   for (let s = 0; s < k; s++) {
     const e = _nearEid[s];
     applyDamage(e, damage);
-    Status.slowedUntil[e] = until;
+    applySlow(e, BLOSSOM_SLOW.speedReduction, BLOSSOM_SLOW.durationS);
   }
 }
 
@@ -197,15 +208,15 @@ function petalStorm(world: World, primary: number, damage: number, until: number
  * `radiusSq` of the primary — UNCAPPED (a direct enemyQuery scan, NOT the
  * capped nearest-N scratch). No damage falloff. The primary already took its
  * direct hit, so it's skipped. Flying enemies are skipped (ground candy splash,
- * matching Meteor's "AoE skips fliers"). `slowUntil > 0` (Sticky Sugar) also
- * stamps the shared slow on each splashed enemy. Zero-alloc.
+ * matching Meteor's "AoE skips fliers"). A non-null `slow` (Sticky Sugar L3,
+ * 20%/1s) is applied to each splashed enemy via the shared slow path. Zero-alloc.
  */
 function aoeSplash(
   world: World,
   primary: number,
   damage: number,
   radiusSq: number,
-  slowUntil: number,
+  slow: SlowEffect | null,
 ): void {
   const px = Position.x[primary];
   const py = Position.y[primary];
@@ -218,7 +229,7 @@ function aoeSplash(
     const dy = Position.y[e] - py;
     if (dx * dx + dy * dy > radiusSq) continue;
     applyDamage(e, damage);
-    if (slowUntil > 0) Status.slowedUntil[e] = slowUntil;
+    if (slow) applySlow(e, slow.speedReduction, slow.durationS);
   }
 }
 
@@ -254,16 +265,17 @@ const TSUNAMI_LENGTH_PX = TSUNAMI_LENGTH_TILES * CELL;
 /**
  * Tsunami line (Bubbler L3): UNCAPPED — hit every GROUND enemy on the lane line
  * through the primary (axis = the flow-field direction at the primary's cell;
- * "front row" = the lane). Each takes `damage` + slow + `pushTiles` knockback.
- * The primary is excluded (it already took the direct hit). Zero-alloc inline
- * scan. FLAG: line is along the lane axis through the target (computable at
- * hit-time without the tower origin), full lane width, bounded by TSUNAMI_LENGTH.
+ * "front row" = the lane). Each takes `damage` + a non-null `slow` (Bubbler
+ * 30%/1.5s) + `pushTiles` knockback. The primary is excluded (it already took the
+ * direct hit). Zero-alloc inline scan. FLAG: line is along the lane axis through
+ * the target (computable at hit-time without the tower origin), full lane width,
+ * bounded by TSUNAMI_LENGTH.
  */
 function tsunamiLine(
   world: World,
   primary: number,
   damage: number,
-  slowUntil: number,
+  slow: SlowEffect | null,
   pushTiles: number,
 ): void {
   const px = Position.x[primary];
@@ -288,7 +300,7 @@ function tsunamiLine(
     if (perp > TSUNAMI_HALF_WIDTH_PX || along > TSUNAMI_LENGTH_PX || along < -TSUNAMI_LENGTH_PX)
       continue;
     applyDamage(e, damage);
-    if (slowUntil > 0) Status.slowedUntil[e] = slowUntil;
+    if (slow) applySlow(e, slow.speedReduction, slow.durationS);
     pushBack(e, pushTiles);
   }
 }
@@ -314,9 +326,12 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
 
       const hasStatus = hasComponent(world, Status, target);
       if ((special & SPECIAL.Slow) !== 0 && hasStatus) {
-        // Slow magnitude is read by PathFollowSystem (SLOW_REDUCTION); here we
-        // only stamp the expiry. Blossom 40%/2s.
-        Status.slowedUntil[target] = gameTime() + SLOW_DURATION_S;
+        // Per-application slow (magnitude+duration are DATA, applied via the shared
+        // applySlow). The projectile carries no source tower, so disambiguate the
+        // two SPECIAL.Slow towers by the Push bit (Bubbler-only): Bubbler 30%/1.5s
+        // else Blossom 40%/2s. FLAGGED. PathFollow reads Status.slowFactor.
+        const slow = (special & SPECIAL.Push) !== 0 ? BUBBLER_SLOW : BLOSSOM_SLOW;
+        applySlow(target, slow.speedReduction, slow.durationS);
       }
       if ((special & SPECIAL.Chain) !== 0) {
         // Primary already took full damage; arc 50% to the nearest others
@@ -324,18 +339,17 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
         chainLightning(world, target, damage, (special & SPECIAL.ChainPlus) !== 0 ? 3 : 2);
       }
       if ((special & SPECIAL.AoeSlow) !== 0) {
-        // Petal Storm (Blossom L3): damage + slow splash to nearby enemies.
-        petalStorm(world, target, damage, gameTime() + SLOW_DURATION_S);
+        // Petal Storm (Blossom L3): damage + Blossom slow splash to nearby enemies.
+        petalStorm(world, target, damage);
       }
       if ((special & SPECIAL.Splash) !== 0) {
         // Sugar Cannon: uncapped AoE to ground enemies in radius (1.5/2.0 tiles).
-        // Sticky Sugar (SplashSlow) also slows them. Independent of Chain/AoeSlow
-        // (distinct bit; only this tower's projectiles carry Splash).
+        // Sticky Sugar (SplashSlow) also slows them — 20%/1s (its own magnitude).
+        // Independent of Chain/AoeSlow (distinct bit; only Sugar carries Splash).
         const radiusSq =
           (special & SPECIAL.SplashBig) !== 0 ? SPLASH_RADIUS_BIG_SQ : SPLASH_RADIUS_SQ;
-        const slowUntil =
-          (special & SPECIAL.SplashSlow) !== 0 ? gameTime() + STICKY_SLOW_DURATION_S : 0;
-        aoeSplash(world, target, damage, radiusSq, slowUntil);
+        const slow = (special & SPECIAL.SplashSlow) !== 0 ? SUGAR_SLOW : null;
+        aoeSplash(world, target, damage, radiusSq, slow);
       }
       if ((special & SPECIAL.Stun) !== 0 && hasStatus && damageRoll() < STUN_CHANCE) {
         // Overcharge (Stormcloud L3): 20% stun. Reuses the Freeze stun path
@@ -347,8 +361,9 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
         const pushTiles = (special & SPECIAL.PushBig) !== 0 ? PUSH_BIG_TILES : PUSH_TILES;
         // Tsunami (Bubbler L3): line the OTHER lane enemies BEFORE pushing the
         // primary, so the line axis is centred on the primary's original cell.
+        // Each lined enemy also takes Bubbler's 30%/1.5s slow.
         if ((special & SPECIAL.Line) !== 0) {
-          tsunamiLine(world, target, damage, gameTime() + SLOW_DURATION_S, pushTiles);
+          tsunamiLine(world, target, damage, BUBBLER_SLOW, pushTiles);
         }
         pushBack(target, pushTiles);
       }

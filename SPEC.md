@@ -285,6 +285,16 @@ User can also force quality via Settings: Auto / Low / High.
 
 ### 6.1 Towers (6 base × 3 upgrade levels = 18 configs)
 
+> **Slow is PER-APPLICATION.** Each slow source carries its OWN
+> magnitude + duration as DATA (`TOWERS.<id>.slow`), stamped on hit via the shared
+> `applySlow` helper into `Status.slowFactor` (speed multiplier) + `Status.slowedUntil`;
+> PathFollow scales speed by `slowFactor` while the timer is live. **Stacking rule
+> [NOT-LOCKED — §6 is silent]:** *strongest magnitude wins, refresh-to-longer* — a
+> new slow keeps whichever reduction is bigger and extends to whichever expiry is
+> later (so a weaker-but-longer slow can extend an active stronger one without
+> weakening it). Engine support = one field (`Status.slowFactor`). The Freeze skill
+> uses `Status.stunnedUntil` (a full stop) and is unaffected.
+
 #### 🌸 Blossom — Slow Damage Dealer
 - **Base:** 15 DMG, 2.5 range, 1.2s fire rate
 - **Cost:** 50 gold
@@ -304,14 +314,14 @@ User can also force quality via Settings: Auto / Low / High.
 - **Cost:** 75 gold
 - **Special:** 1.5-tile splash radius
 - **L2 — Bigger Boom (+60g):** +20 DMG (→50), +0.5 splash (→2.0 tiles)
-- **L3 — Sticky Sugar (+120g):** Splash applies a short slow (1s)
+- **L3 — Sticky Sugar (+120g):** Splash applies a **20% slow for 1s** (§6.1-exact)
 - **Implementation (flagged):** splash is **UNCAPPED** — full damage to EVERY
   enemy in radius, **no falloff** (NOT-LOCKED — §6.1 gives none). It hits
   **GROUND enemies only** (skips Flying, matching Meteor's "AoE skips fliers") —
   a direct projectile hit can still target/strike a flier, but the splash won't.
-  L3 reuses the shared slow path, so the *reduction* is the game's single global
-  **40%** (not §6.1's "20%", which needs a per-enemy slow-magnitude field —
-  deferred); the **1s duration** is honored. No L3 damage bump (§6.1 gives none).
+  L3's slow is now **per-application — 20% / 1s, SPEC-exact** (its own magnitude in
+  `TOWERS.sugarcannon.slow`, stamped via `applySlow`). The prior "reuses the global
+  40%" deviation is RESOLVED. No L3 damage bump (§6.1 gives none).
 
 #### 🌙 Luna Crystal — Sniper *(BUILT)*
 - **Base:** 60 DMG, 4.0 range (longest reach), 1.5s fire rate
@@ -368,7 +378,7 @@ User can also force quality via Settings: Auto / Low / High.
 #### 🌊 Bubbler — Crowd Control *(BUILT — completes the 6-tower set)*
 - **Base:** 12 DMG, 2.0 range, 0.8s fire rate
 - **Cost:** 80 gold
-- **Special:** Pushes enemies back 0.5 tiles + slow
+- **Special:** Pushes enemies back 0.5 tiles + **30% slow** (1.5s)
 - **L2 — Tidal Wave (+70g):** +8 DMG (→20) + push 1.0 tile
 - **L3 — Tsunami (+140g):** Line attack — hits all ground enemies along the lane
 - **Implementation (flagged):**
@@ -378,10 +388,10 @@ User can also force quality via Settings: Auto / Low / High.
     Wave). Applies to **fliers too** (a water shove). **Clamp = all-or-nothing:**
     the full push lands only if the destination cell is on-map AND not blocked;
     otherwise it's skipped (covers pushing past the spawn / into a wall / off-map).
-  - **Slow:** REUSES the shared Slow path → global **40%** reduction / **2s**
-    (the existing convention); §6.1's "30%" + a shorter duration would need a
-    per-projectile slow magnitude+duration field — now wanted by **Sugar L3 +
-    Bubbler**, tracked as a follow-up (NOT-LOCKED, flagged).
+  - **Slow:** now **per-application — 30% reduction** (§6.1-exact) for **1.5s**
+    (§6.1 gives NO duration → slice value, FLAG). Its own magnitude lives in
+    `TOWERS.bubbler.slow`, stamped via `applySlow`. The prior "reuses the global
+    40%/2s" deviation is RESOLVED. The Tsunami line (L3) applies this same slow.
   - **Tsunami line:** UNCAPPED — every **ground** enemy on the lane line through
     the target (axis = the flow-field direction at the target's cell; "front row"
     = the lane), within `0.5 tile` perpendicular and `±4 tiles` along (both

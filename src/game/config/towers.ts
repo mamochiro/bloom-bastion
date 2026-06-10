@@ -13,7 +13,13 @@
  *                 the `Tower.cooldown` countdown after each shot.
  *  - `cost`     — gold to place (SPEC §6.1).
  */
-import { SPECIAL, SPLASH_RADIUS_BIG_TILES, SPLASH_RADIUS_TILES } from "./combat";
+import {
+  SLOW_DURATION_S,
+  SLOW_REDUCTION,
+  SPECIAL,
+  SPLASH_RADIUS_BIG_TILES,
+  SPLASH_RADIUS_TILES,
+} from "./combat";
 import { HIVE_SUMMON_COOLDOWN_S } from "./hive";
 import type { SpriteKey } from "./sprites";
 
@@ -82,7 +88,9 @@ const BLOSSOM: TowerConfig = {
   cooldown: 1.2,
   cost: 50,
   sprite: "tower-blossom-l1",
-  slow: { speedReduction: 0.4, durationS: 2 },
+  // 40% / 2s (SPEC §6.1) — the shared Blossom reference (combat.ts), now applied
+  // per-application via applySlow like every other slow source.
+  slow: { speedReduction: SLOW_REDUCTION, durationS: SLOW_DURATION_S },
   upgrades: [
     // L2 "Bigger Bloom" +40g: +10 DMG (25), +0.3 range (2.8), faster fire.
     // NOT-LOCKED: §6.1 says "faster fire" with no number → 1.0s slice value (flag).
@@ -118,8 +126,9 @@ const STORMCLOUD: TowerConfig = {
  * 🍭 Sugar Cannon (base) — SPEC §6.1: 30 DMG, 2.0 range, 1.8s fire rate, 75g.
  * Special: AoE splash, 1.5-tile radius (uncapped — hits every ground enemy in
  * radius). L2 "Bigger Boom" → +20 DMG + 0.5 splash; L3 "Sticky Sugar" → splash
- * also slows. Splash radius / slow live in the SPECIAL bits + combat constants;
- * range/cooldown carry over per level (§6.1 gives no L2/L3 change for them).
+ * also slows (SPEC §6.1 "20% slow, 1s" — now its OWN per-application magnitude,
+ * `slow` below, applied only when the L3 SplashSlow bit is set). Splash radius
+ * lives in the SPECIAL bits + combat constants; range/cooldown carry over.
  */
 const SUGAR_CANNON: TowerConfig = {
   id: "sugarcannon",
@@ -129,6 +138,8 @@ const SUGAR_CANNON: TowerConfig = {
   cooldown: 1.8,
   cost: 75,
   sprite: "tower-sugarcannon-l1",
+  // Sticky Sugar (L3): 20% slow for 1s (SPEC §6.1) — gated by the SplashSlow bit.
+  slow: { speedReduction: 0.2, durationS: 1.0 },
   upgrades: [
     // L2 "Bigger Boom" +60g: +20 DMG (50), +0.5 splash (→2.0); range/cd unchanged.
     { label: "Bigger Boom", cost: 60, damage: 50, range: 2.0, cooldown: 1.8 },
@@ -186,9 +197,10 @@ const HIVE: TowerConfig = {
 
 /**
  * 🌊 Bubbler (base) — SPEC §6.1: 12 DMG, 2.0 range, 0.8s fire rate, 80g.
- * Special: slow + knockback 0.5 tiles. L2 "Tidal Wave" → +DMG (chose +8 → 20;
- * §6.1 gives no number, flagged) + push 1.0 tile. L3 "Tsunami" → line attack
- * (hits all ground enemies along the lane). Slow/push/line are SPECIAL bits.
+ * Special: slow (30%) + knockback 0.5 tiles. L2 "Tidal Wave" → +DMG (chose +8 →
+ * 20; §6.1 gives no number, flagged) + push 1.0 tile. L3 "Tsunami" → line attack
+ * (hits all ground enemies along the lane, each also slowed). Slow/push/line are
+ * SPECIAL bits; the slow MAGNITUDE is its own per-application `slow` below.
  */
 const BUBBLER: TowerConfig = {
   id: "bubbler",
@@ -198,7 +210,8 @@ const BUBBLER: TowerConfig = {
   cooldown: 0.8,
   cost: 80,
   sprite: "tower-bubbler-l1",
-  slow: { speedReduction: 0.4, durationS: 2 },
+  // SPEC §6.1 says "30% slow" but gives NO duration → 1.5s is a slice value (FLAG).
+  slow: { speedReduction: 0.3, durationS: 1.5 },
   upgrades: [
     // L2 "Tidal Wave" +70g: +8 DMG (→20) + bigger push (0.5→1.0 tile).
     { label: "Tidal Wave", cost: 70, damage: 20, range: 2.0, cooldown: 0.8 },
