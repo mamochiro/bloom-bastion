@@ -313,12 +313,31 @@ User can also force quality via Settings: Auto / Low / High.
   **40%** (not §6.1's "20%", which needs a per-enemy slow-magnitude field —
   deferred); the **1s duration** is honored. No L3 damage bump (§6.1 gives none).
 
-#### 🌙 Luna Crystal — Sniper
-- **Base:** 60 DMG, 4.0 range, 1.5s fire rate
+#### 🌙 Luna Crystal — Sniper *(BUILT)*
+- **Base:** 60 DMG, 4.0 range (longest reach), 1.5s fire rate
 - **Cost:** 150 gold
 - **Special:** Single target, beam projectile, +30% vs armored
 - **L2 — Pierce (+100g):** Hits up to 3 in line
 - **L3 — Moonburst (+200g):** Critical 25% chance (×2 damage)
+- **Implementation (flagged):**
+  - **No per-level base-stat change** — 60/4.0/1.5 across L1–L3 (§6.1 gives none);
+    upgrades add specials only.
+  - **AntiArmor (+30% vs armored):** applied **pre-armor** (`×1.3` then the armor
+    reduction), so Luna is net-stronger into armor (vs a Snail: 60→78→39 = ×1.3
+    of the base 30). No bonus vs unarmored.
+  - **Moonburst crit:** 25% ×2, rolled via the shared injectable damage RNG;
+    **per-target** (each pierce beam rolls independently). Order: AntiArmor `×1.3`
+    **then** crit `×2`, then armor/dodge.
+  - **Pierce line:** resolved at **fire-time in TowerAI** (fires up to 3 beams
+    along the tower→target ray; capped-3 zero-alloc line scan, beam half-width
+    **0.4 tiles** = NOT-LOCKED) — the projectile loses its origin by hit-time, so
+    the ray can only be built where the tower is known. Each beam applies
+    AntiArmor/Crit per-hit in DamageSystem.
+  - **Beam modeling:** reuses the existing (fast homing) projectile path tagged as
+    a beam; no hitscan / new VFX this slice.
+  - **Fliers:** the sniper beam **hits fliers** (no flying skip) — unlike ground
+    splash; TowerAI targets nearest in range including fliers.
+  - Prereq: `Projectile.special` widened **ui8 → ui16** (the 8-bit field was full).
 
 #### 🐝 Hive — Summoner
 - **Base:** Summons 3 bee minions (10 HP, 5 DMG each, 5s lifetime)

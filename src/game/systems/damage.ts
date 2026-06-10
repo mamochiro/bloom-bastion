@@ -24,8 +24,11 @@ import {
 import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
 import {
+  ANTI_ARMOR_MULT,
   CHAIN_FALLOFF,
   CHAIN_RADIUS_TILES,
+  CRIT_CHANCE,
+  CRIT_MULT,
   PETAL_MAX_TARGETS,
   PETAL_RADIUS_TILES,
   SLOW_DURATION_S,
@@ -38,7 +41,7 @@ import {
 } from "../config/combat";
 import { ENEMY_BY_TYPE, ENEMY_FLAGS, EnemyType } from "../config/enemies";
 import { TINT } from "../config/tokens";
-import { applyDamage, damageRoll } from "../ecs/apply-damage";
+import { applyDamage, damageRoll, isArmored } from "../ecs/apply-damage";
 import { hitQuery } from "../ecs/components";
 import { isSimPaused } from "../ecs/game-state";
 import { spawnEnemy } from "../entities/create-enemy";
@@ -222,7 +225,12 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
     const special = Projectile.special[proj];
 
     if (hasComponent(world, Health, target)) {
-      const damage = Projectile.damage[proj];
+      let damage = Projectile.damage[proj];
+      // Luna AntiArmor (+30% vs armored) then Moonburst crit (×2, 25% via the
+      // shared damage RNG) — applied PRE-armor so Luna is net-stronger into armor;
+      // crit rolls per projectile (so per-target across a pierce). FLAGGED order.
+      if ((special & SPECIAL.AntiArmor) !== 0 && isArmored(target)) damage *= ANTI_ARMOR_MULT;
+      if ((special & SPECIAL.Crit) !== 0 && damageRoll() < CRIT_CHANCE) damage *= CRIT_MULT;
       // Full damage to the primary (armor-adjusted). Flash only on a hit that
       // actually lands — NOT a Shade dodge / 0-damage (applyDamage returns false).
       if (applyDamage(target, damage)) flashEntity(target);

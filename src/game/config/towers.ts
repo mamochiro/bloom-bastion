@@ -136,11 +136,34 @@ const SUGAR_CANNON: TowerConfig = {
   ],
 };
 
+/**
+ * 🌙 Luna Crystal (base) — SPEC §6.1: 60 DMG, 4.0 range (longest reach), 1.5s
+ * fire rate, 150g. Special: +30% vs armored (beam single-target). L2 "Pierce" →
+ * beam hits up to 3 in a line; L3 "Moonburst" → 25% crit (×2). No per-level
+ * base-stat change (§6.1 gives none): 60/4.0/1.5 across all levels (flagged).
+ */
+const LUNA: TowerConfig = {
+  id: "luna",
+  name: "Luna Crystal",
+  damage: 60,
+  range: 4.0,
+  cooldown: 1.5,
+  cost: 150,
+  sprite: "tower-luna-l1",
+  upgrades: [
+    // L2 "Pierce" +100g: beam hits up to 3 in a line (special only; stats same).
+    { label: "Pierce", cost: 100, damage: 60, range: 4.0, cooldown: 1.5 },
+    // L3 "Moonburst" +200g: 25% crit ×2 (special only; stats same).
+    { label: "Moonburst", cost: 200, damage: 60, range: 4.0, cooldown: 1.5 },
+  ],
+};
+
 /** Numeric `Tower.typeId` (ui8) — the index stored in the ECS component. */
 export const TowerType = {
   Blossom: 0,
   Stormcloud: 1,
   SugarCannon: 2,
+  Luna: 3,
 } as const;
 
 export type TowerTypeId = (typeof TowerType)[keyof typeof TowerType];
@@ -153,6 +176,7 @@ export const TOWERS: Readonly<Record<string, TowerConfig>> = {
   blossom: BLOSSOM,
   stormcloud: STORMCLOUD,
   sugarcannon: SUGAR_CANNON,
+  luna: LUNA,
 };
 
 /** Lookup by numeric `Tower.typeId` (what factories/systems carry). */
@@ -160,6 +184,7 @@ export const TOWER_BY_TYPE: Readonly<Record<number, TowerConfig>> = {
   [TowerType.Blossom]: BLOSSOM,
   [TowerType.Stormcloud]: STORMCLOUD,
   [TowerType.SugarCannon]: SUGAR_CANNON,
+  [TowerType.Luna]: LUNA,
 };
 
 /**
@@ -170,6 +195,7 @@ export const PLACEABLE_TOWERS: readonly TowerTypeId[] = [
   TowerType.Blossom,
   TowerType.Stormcloud,
   TowerType.SugarCannon,
+  TowerType.Luna,
 ];
 
 /** Highest tower level (SPEC §6.1: 3). */
@@ -203,6 +229,12 @@ function levelSpecial(typeId: number, level: number): number {
     let s = SPECIAL.Splash; // all levels splash
     if (level >= 2) s |= SPECIAL.SplashBig; // Bigger Boom: 1.5→2.0 radius
     if (level >= 3) s |= SPECIAL.SplashSlow; // Sticky Sugar: splash slows
+    return s;
+  }
+  if (typeId === TowerType.Luna) {
+    let s = SPECIAL.AntiArmor; // all levels: +30% vs armored
+    if (level >= 2) s |= SPECIAL.Pierce; // Pierce: beam hits up to 3 in a line
+    if (level >= 3) s |= SPECIAL.Crit; // Moonburst: 25% crit ×2
     return s;
   }
   return SPECIAL.None;

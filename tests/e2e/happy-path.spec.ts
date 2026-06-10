@@ -49,8 +49,9 @@ test("boots clean, starts a Normal run, places + upgrades a tower, survives a li
   await expect(page.locator('[aria-label$="lives remaining"]')).toBeVisible();
   await expect(page.locator('[aria-label^="Wave "]')).toBeVisible();
 
-  // The picker carries all 3 placeable towers (Sugar Cannon #3 landed this slice).
+  // The picker carries every placeable tower (Sugar Cannon #3, Luna Crystal #4).
   await expect(page.getByRole("button", { name: /Sugar Cannon/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Luna Crystal/ })).toBeVisible();
 
   // Place a Blossom (cost 50) on a grass cell → gold spent 150 → 100.
   await page.getByRole("button", { name: /Blossom/ }).click();

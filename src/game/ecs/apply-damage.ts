@@ -48,3 +48,8 @@ export function applyDamage(eid: number, rawDamage: number): boolean {
   Health.current[eid] -= effective;
   return effective > 0;
 }
+
+/** True if the enemy has armor (Snail) — used by Luna's AntiArmor bonus. */
+export function isArmored(eid: number): boolean {
+  return (ENEMY_BY_TYPE[Enemy.typeId[eid]]?.armor ?? 0) > 0;
+}

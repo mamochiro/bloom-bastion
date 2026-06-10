@@ -39,11 +39,12 @@ describe("Stormcloud (chain lightning)", () => {
     expect(cfg.chain).toEqual({ maxTargets: 3, falloff: 0.5 });
   });
 
-  it("exports PLACEABLE_TOWERS = [Blossom, Stormcloud, SugarCannon] for the UI", () => {
+  it("exports PLACEABLE_TOWERS for the UI (all built towers)", () => {
     expect(PLACEABLE_TOWERS).toEqual([
       TowerType.Blossom,
       TowerType.Stormcloud,
       TowerType.SugarCannon,
+      TowerType.Luna,
     ]);
   });
 

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+  <!-- Bloom Bastion — Luna Crystal tower, level 1. Source: design-assets/sprites_towers.jsx TowerLuna({level:1}).
+       Long-range sniper (SPEC §6.1): faceted moon-shard crystal channeling a soft moonbeam.
+       Cool/elegant lavender palette to contrast the warm Sugar Cannon.
+       Tokens (design-assets/export/design-tokens.css → resolved to hex; sprites are not CSS-var themed at runtime):
+       luna-light #e6dcff, luna-mid #b388ff, luna-dark #7a4fd6, bg-stage #1a0f2e.
+       L1 = hex pedestal + faint moonbeam shaft + faceted crystal (s=0.82) + white core.
+       Crescent accent (L2+) and the L3 base-facet are omitted. Idle bob / pulse-glow
+       CSS keyframes from the source are DEFERRED (juice slice). -->
+  <defs>
+    <!-- Static moonlight glow (replaces drop-shadow(0 0 9px luna-mid)). -->
+    <filter id="lu1-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#b388ff" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- hex pedestal -->
+  <g>
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#7a4fd6"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#b388ff"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#7a4fd6" opacity="0.7"/>
+  </g>
+
+  <!-- faint moonbeam shaft (beam-charge channel) -->
+  <path d="M52 64 L48 138 L72 138 L68 64 Z" fill="#e6dcff" opacity="0.16"/>
+
+  <!-- faceted moon-shard crystal (center 60,64; scale 0.82) -->
+  <g filter="url(#lu1-glow)" transform="translate(60 64)">
+    <path d="M0 -27.88 L13.12 -6.56 L8.2 24.6 L-8.2 24.6 L-13.12 -6.56 Z" fill="#b388ff"/>
+    <path d="M0 -27.88 L13.12 -6.56 L0 -3.28 Z" fill="#e6dcff"/>
+    <path d="M0 -27.88 L-13.12 -6.56 L0 -3.28 Z" fill="#7a4fd6" opacity="0.85"/>
+    <path d="M0 -3.28 L13.12 -6.56 L8.2 24.6 Z" fill="#e6dcff" opacity="0.55"/>
+    <path d="M0 -3.28 L-13.12 -6.56 L-8.2 24.6 Z" fill="#7a4fd6" opacity="0.6"/>
+  </g>
+
+  <!-- glowing core orb (white / luna-light) -->
+  <circle cx="60" cy="62" r="9" fill="#e6dcff" opacity="0.18"/>
+  <circle cx="60" cy="62" r="4.5" fill="#fff"/>
+  <circle cx="60" cy="62" r="4.5" fill="#b388ff" opacity="0.45"/>
+  <circle cx="58.5" cy="60.5" r="1.5" fill="#fff" opacity="0.9"/>
+</svg>

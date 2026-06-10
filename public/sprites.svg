@@ -95,6 +95,13 @@
       <stop offset="40%" stop-color="#ffd9d2"/>
       <stop offset="100%" stop-color="#ff7a6b"/>
     </radialGradient>
+    <!-- 🌙 Luna Crystal moonlight glow (replaces drop-shadow(0 0 9px luna-mid)). -->
+    <filter id="atlas-lu-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#b388ff" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
     <!-- 🐲 Neon Dragon (final boss) — the biggest, most luminous glow in the sheet.
          Two-layer neon halo (mint body + violet accent) baked statically. -->
     <filter id="atlas-dragon-glow" x="-80%" y="-80%" width="260%" height="260%">
@@ -179,6 +186,27 @@
     <circle cx="60" cy="62" r="9" fill="#fff" opacity="0.18"/>
     <circle cx="60" cy="62" r="4.5" fill="#fff"/>
     <circle cx="60" cy="62" r="4.5" fill="#ff7a6b" opacity="0.45"/>
+    <circle cx="58.5" cy="60.5" r="1.5" fill="#fff" opacity="0.9"/>
+  </symbol>
+
+  <!-- 🌙 Luna Crystal tower, L1 — grounded at viewBox bottom (0 0 120 150).
+       Long-range moon-shard sniper: hex pedestal + moonbeam shaft + faceted crystal (s=0.82). -->
+  <symbol id="tower-luna-l1" viewBox="0 0 120 150">
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#7a4fd6"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#b388ff"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#7a4fd6" opacity="0.7"/>
+    <path d="M52 64 L48 138 L72 138 L68 64 Z" fill="#e6dcff" opacity="0.16"/>
+    <g filter="url(#atlas-lu-glow)" transform="translate(60 64)">
+      <path d="M0 -27.88 L13.12 -6.56 L8.2 24.6 L-8.2 24.6 L-13.12 -6.56 Z" fill="#b388ff"/>
+      <path d="M0 -27.88 L13.12 -6.56 L0 -3.28 Z" fill="#e6dcff"/>
+      <path d="M0 -27.88 L-13.12 -6.56 L0 -3.28 Z" fill="#7a4fd6" opacity="0.85"/>
+      <path d="M0 -3.28 L13.12 -6.56 L8.2 24.6 Z" fill="#e6dcff" opacity="0.55"/>
+      <path d="M0 -3.28 L-13.12 -6.56 L-8.2 24.6 Z" fill="#7a4fd6" opacity="0.6"/>
+    </g>
+    <circle cx="60" cy="62" r="9" fill="#e6dcff" opacity="0.18"/>
+    <circle cx="60" cy="62" r="4.5" fill="#fff"/>
+    <circle cx="60" cy="62" r="4.5" fill="#b388ff" opacity="0.45"/>
     <circle cx="58.5" cy="60.5" r="1.5" fill="#fff" opacity="0.9"/>
   </symbol>
 

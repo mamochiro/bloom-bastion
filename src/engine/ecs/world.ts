@@ -60,11 +60,14 @@ export const Enemy = defineComponent({
   flags: Types.ui16,
 });
 
-/** Projectile: damage on hit, homing target eid, special-effect id. */
+/** Projectile: damage on hit, homing target eid, special-effect bitmask. */
 export const Projectile = defineComponent({
   damage: Types.f32,
   targetId: Types.eid,
-  special: Types.ui8,
+  // 16-bit special-effect bitfield (gameplay `SPECIAL`): the 8-bit field filled
+  // up at 8 towers' specials; widened to ui16 for Luna Crystal's bits (slice
+  // task STEP 1). Values only — no behaviour change for the existing bits.
+  special: Types.ui16,
 });
 
 /** Marks an entity that should read the shared flow field (SPEC §4.3). */

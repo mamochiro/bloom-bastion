@@ -72,7 +72,20 @@ export const SPLASH_RADIUS_BIG_TILES = 2.0;
 export const STICKY_SLOW_DURATION_S = 1.0;
 
 /**
- * Projectile special-effect bit flags, packed into `Projectile.special` (ui8).
+ * Luna Crystal (sniper). AntiArmor: +30% damage vs ARMORED targets (LOCKED to
+ * §6.1). Crit (Moonburst): 25% chance for ×2 (LOCKED). Pierce beam width is the
+ * narrow perpendicular tolerance of the firing line — NOT-LOCKED (§6.1 gives
+ * none), 0.4 tiles is a slice value (flag). Pierce hits up to 3 along the line.
+ */
+export const ANTI_ARMOR_MULT = 1.3;
+export const CRIT_CHANCE = 0.25;
+export const CRIT_MULT = 2;
+export const PIERCE_MAX_TARGETS = 3;
+export const BEAM_WIDTH_TILES = 0.4;
+
+/**
+ * Projectile special-effect bit flags, packed into `Projectile.special` — now a
+ * **ui16** field (8/8 bits were full at 8 towers' specials; widened for Luna).
  * The TowerAI sets them from the tower's CURRENT-LEVEL stats; DamageSystem reads
  * them on landing. Distinct bits so a projectile can carry several effects.
  */
@@ -95,4 +108,10 @@ export const SPECIAL = {
   SplashBig: 1 << 6,
   /** Splash also applies a short slow (Sugar Cannon L3 "Sticky Sugar"). */
   SplashSlow: 1 << 7,
+  /** +30% damage vs ARMORED targets (Luna Crystal). */
+  AntiArmor: 1 << 8,
+  /** Beam pierces up to 3 along the firing line (Luna L2 "Pierce"). TowerAI-resolved. */
+  Pierce: 1 << 9,
+  /** 25% chance ×2 damage (Luna L3 "Moonburst"). */
+  Crit: 1 << 10,
 } as const;
