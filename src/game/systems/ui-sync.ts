@@ -26,10 +26,16 @@ import {
 import { ENEMY_BY_TYPE } from "../config/enemies";
 import { SKILL_ORDER } from "../config/skills";
 import { TOWER_BY_TYPE, sellValue, upgradeInfo } from "../config/towers";
-import { getPhase } from "../ecs/game-state";
+import { getGameMode, getPhase } from "../ecs/game-state";
 import { getGold, getLives } from "../ecs/resources";
 import { getSelectedTower } from "../ecs/selection";
-import { cooldownFraction, cooldownRemaining, isReady, isUnlocked } from "../ecs/skills";
+import {
+  cooldownFraction,
+  cooldownRemaining,
+  getClearedWaves,
+  isReady,
+  isUnlocked,
+} from "../ecs/skills";
 import { SpawnSystem } from "./spawn";
 
 /** Minimum seconds between store pushes (≤10Hz). */
@@ -72,6 +78,8 @@ export function buildSnapshot(world: World): GameSnapshot {
     wave: SpawnSystem.getCurrentWave(), // live 1-based wave number
     enemiesAlive: enemyQuery(world).length,
     gameStatus: getPhase(), // authoritative phase (DeathSystem decides win/lose)
+    mode: getGameMode(), // authoritative run mode (campaign / endless)
+    score: getClearedWaves(), // highest wave cleared (SPEC §6.3 "wave reached")
     // Per-skill cooldown/lock state (SPEC §6.4), fixed order. ≤10Hz boundary
     // alloc (the snapshot itself allocates) — not the per-frame hot path.
     skills: SKILL_ORDER.map((type) => ({

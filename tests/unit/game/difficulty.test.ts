@@ -26,6 +26,7 @@ function startDeps(difficulty: "casual" | "normal" | "hardcore") {
       return true;
     },
     getSelectedDifficulty: () => difficulty,
+    getStartMode: () => "campaign",
     consumeSkillActivation: () => null,
     getSkillAim: () => null,
     clearSkillAim: () => {},

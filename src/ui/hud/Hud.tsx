@@ -1,6 +1,13 @@
 import type { CSSProperties } from "react";
 import { requestRestart } from "../../store/commands";
-import { useGameStatus, useGold, useLives, useWave } from "../../store/game-snapshot";
+import {
+  useGameMode,
+  useGameStatus,
+  useGold,
+  useLives,
+  useScore,
+  useWave,
+} from "../../store/game-snapshot";
 import { BossBar } from "./BossBar";
 import { SkillBar } from "./SkillBar";
 import { SkillFlash } from "./SkillFlash";
@@ -27,6 +34,8 @@ export function Hud() {
   const lives = useLives();
   const wave = useWave();
   const status = useGameStatus();
+  const mode = useGameMode();
+  const score = useScore();
   return (
     <>
       {/* Decorative VFX first so the interactive HUD paints above it. */}
@@ -37,8 +46,14 @@ export function Hud() {
       {status === "playing" && <BossBar />}
       {status === "playing" && <UpgradePanel />}
       {status === "menu" && <StartScreen />}
-      {status === "won" && <VictoryView gold={gold} wave={wave} />}
-      {status === "lost" && <DefeatView gold={gold} wave={wave} />}
+      {/* Campaign-only victory — endless never wins (SPEC §6.3). */}
+      {status === "won" && mode === "campaign" && <VictoryView gold={gold} wave={wave} />}
+      {status === "lost" &&
+        (mode === "endless" ? (
+          <EndlessOverlayView score={score} />
+        ) : (
+          <DefeatView gold={gold} wave={wave} />
+        ))}
     </>
   );
 }
@@ -283,6 +298,24 @@ export function VictoryView({ gold, wave }: { gold: number; wave: number }) {
       title="BLOOM PREVAILS"
       summary={`All ${wave.toLocaleString()} waves cleared · ${gold.toLocaleString()} gold banked`}
       ariaLabel="Victory — the bloom prevails"
+      onPlayAgain={requestRestart}
+    />
+  );
+}
+
+/**
+ * Endless game-over summary (SPEC §6.3 — endless ALWAYS ends on loss, never
+ * wins). Shows the wave reached (score = highest wave cleared); Play Again
+ * replays endless (restart preserves the run mode, per gameplay).
+ */
+export function EndlessOverlayView({ score }: { score: number }) {
+  return (
+    <EndOverlay
+      accent="var(--luna-mid)"
+      emoji="♾️"
+      title="RUN ENDED"
+      summary={`Wave Reached: ${score.toLocaleString()}`}
+      ariaLabel={`Endless run ended — wave reached ${score}`}
       onPlayAgain={requestRestart}
     />
   );

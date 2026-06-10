@@ -18,12 +18,22 @@
  */
 import { type World, enemyQuery } from "../../engine/ecs/world";
 import type { System } from "../../engine/loop";
-import { INTER_WAVE_DELAY_S, WAVES, type Wave } from "../config/waves";
-import { isSimPaused } from "../ecs/game-state";
+import {
+  ENDLESS_HP_GROWTH,
+  INTER_WAVE_DELAY_S,
+  WAVES,
+  type Wave,
+  genEndlessWave,
+} from "../config/waves";
+import { setEndlessHpMult } from "../ecs/endless";
+import { isEndless, isSimPaused } from "../ecs/game-state";
 import { addGold, getGold } from "../ecs/resources";
 import { recordWaveCleared } from "../ecs/skills";
 import { spawnEnemy } from "../entities/create-enemy";
 import { SPAWN } from "../map/coords";
+
+/** Generated endless waves can carry up to 7 groups — size the scratch for it. */
+const ENDLESS_MAX_GROUPS = 8;
 
 /** Wave-clear economy (SPEC §6.5): clear bonus + capped interest. `waveNumber` 1-based. */
 function applyWaveClearEconomy(world: World, waveNumber: number): void {
@@ -59,14 +69,39 @@ function maxGroups(waves: readonly Wave[]): number {
  */
 export function createSpawnSystem(waves: readonly Wave[] = WAVES): SpawnSystemHandle {
   const lastIndex = waves.length - 1;
-  const spawnedPerGroup = new Int32Array(Math.max(1, maxGroups(waves)));
+  const spawnedPerGroup = new Int32Array(Math.max(maxGroups(waves), ENDLESS_MAX_GROUPS));
 
   let currentWave = 0;
+  // The active wave object, built ONCE on each wave start (authored or generated)
+  // so the per-frame spawn loop never allocates / regenerates.
+  let currentWaveObj: Wave = waves[0];
   let waveElapsed = 0;
   let interWaveRemaining = 0; // > 0 → in the prep gap before the next wave
 
+  // Resolve wave `i`: authored while in range, else procedurally generated
+  // (endless only — campaign never advances past `lastIndex`).
+  const resolveWave = (i: number): Wave =>
+    i < waves.length ? waves[i] : genEndlessWave(i, waves.length);
+
+  // Apply the endless HP multiplier for the current wave (1.0 for authored waves).
+  const applyHpMult = (i: number): void => {
+    setEndlessHpMult(i < waves.length ? 1 : (1 + ENDLESS_HP_GROWTH) ** (i - waves.length + 1));
+  };
+
+  // Move to wave `i`: cache its object + arm its HP scaling.
+  const startWave = (i: number): void => {
+    currentWave = i;
+    currentWaveObj = resolveWave(i);
+    applyHpMult(i);
+    waveElapsed = 0;
+    spawnedPerGroup.fill(0);
+  };
+
+  // Campaign wins at the last authored wave; endless never has a "last" wave.
+  const onFinalCampaignWave = (): boolean => !isEndless() && currentWave >= lastIndex;
+
   const fullySpawned = (): boolean => {
-    const groups = waves[currentWave].groups;
+    const groups = currentWaveObj.groups;
     for (let gi = 0; gi < groups.length; gi++) {
       if (spawnedPerGroup[gi] < groups[gi].count) return false;
     }
@@ -81,9 +116,7 @@ export function createSpawnSystem(waves: readonly Wave[] = WAVES): SpawnSystemHa
       interWaveRemaining -= dt;
       if (interWaveRemaining <= 0) {
         applyWaveClearEconomy(world, currentWave + 1); // for the wave just cleared
-        currentWave += 1;
-        waveElapsed = 0;
-        spawnedPerGroup.fill(0);
+        startWave(currentWave + 1); // authored next, or a fresh endless wave
         interWaveRemaining = 0;
       }
       return world;
@@ -91,7 +124,7 @@ export function createSpawnSystem(waves: readonly Wave[] = WAVES): SpawnSystemHa
 
     // Spawning: emit each group's due enemies on its schedule.
     waveElapsed += dt;
-    const groups = waves[currentWave].groups;
+    const groups = currentWaveObj.groups;
     for (let gi = 0; gi < groups.length; gi++) {
       const g = groups[gi];
       while (
@@ -105,15 +138,13 @@ export function createSpawnSystem(waves: readonly Wave[] = WAVES): SpawnSystemHa
 
     // Wave cleared (fully spawned + board empty)?
     if (fullySpawned() && enemyQuery(world).length === 0) {
-      if (currentWave < lastIndex) {
-        recordWaveCleared(currentWave + 1); // advance skill-unlock gates (SPEC §6.4)
+      if (!onFinalCampaignWave()) {
+        recordWaveCleared(currentWave + 1); // advance skill-unlock gates + score (§6.4)
         interWaveRemaining = INTER_WAVE_DELAY_S; // prep gap → economy + advance later
       } else {
-        // Last wave cleared: credit economy now; DeathSystem declares the win.
+        // Campaign final wave: credit economy now; DeathSystem declares the win.
         // currentWave stays at lastIndex, so this branch is re-entered every
-        // frame until the win pauses the sim — but isSimPaused() (set by Death
-        // the same frame) returns us out, and the economy here is idempotent for
-        // exactly one frame. Guard against double-credit with a sentinel.
+        // frame until the win pauses the sim — guard double-credit with a sentinel.
         if (interWaveRemaining !== -1) {
           recordWaveCleared(currentWave + 1); // unlock gate for the final wave
           applyWaveClearEconomy(world, currentWave + 1);
@@ -126,13 +157,11 @@ export function createSpawnSystem(waves: readonly Wave[] = WAVES): SpawnSystemHa
 
   system.isWaveComplete = fullySpawned;
   system.getCurrentWave = () => currentWave + 1;
-  system.isLastWave = () => currentWave === lastIndex;
+  system.isLastWave = () => !isEndless() && currentWave === lastIndex;
   Object.defineProperty(system, "TOTAL_WAVES", { value: waves.length, enumerable: true });
   system.reset = () => {
-    currentWave = 0;
-    waveElapsed = 0;
     interWaveRemaining = 0;
-    spawnedPerGroup.fill(0);
+    startWave(0); // wave 0 + HP mult 1.0
   };
   return system;
 }

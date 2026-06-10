@@ -87,6 +87,8 @@ describe("UpgradePanel container", () => {
       wave: 5,
       enemiesAlive: 0,
       gameStatus,
+      mode: "campaign",
+      score: 0,
       skills: [],
       boss: null,
       selectedTower,

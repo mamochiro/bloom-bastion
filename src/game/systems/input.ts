@@ -33,12 +33,14 @@ import {
   consumeStart,
   consumeTowerSell,
   consumeTowerUpgrade,
+  getStartMode,
 } from "../../store/commands";
 import { getSelectedDifficulty } from "../../store/difficulty";
 import { clearSkillAim, consumeSkillActivation, getSkillAim } from "../../store/skills";
 import type { Difficulty } from "../config/difficulty";
 import type { SkillType } from "../config/skills";
 import { TOWER_BY_TYPE } from "../config/towers";
+import type { GameMode } from "../ecs/game-state";
 import { isSimPaused } from "../ecs/game-state";
 import { addGold, getGold } from "../ecs/resources";
 import { clearSelectedTower, getSelectedTower, setSelectedTower } from "../ecs/selection";
@@ -51,10 +53,12 @@ import { sellTower, upgradeTower } from "../tower-actions";
 
 /** The slice of input/build/placement/skills/towers the system depends on (injectable for tests). */
 export interface InputDeps {
-  /** True ONCE when "Play" was pressed on the start screen (edge-consume). */
+  /** True ONCE when a start button was pressed on the start screen (edge-consume). */
   consumeStart(): boolean;
   /** The difficulty chosen on the start screen. */
   getSelectedDifficulty(): Difficulty;
+  /** The run mode requested by the start button (campaign / endless). */
+  getStartMode(): GameMode;
   /** True ONCE when "Play Again" was pressed (edge-consume). */
   consumeRestart(): boolean;
   /** A skill activated instantly this frame (Freeze/GoldRush), or null (true-once). */
@@ -84,6 +88,7 @@ export interface InputDeps {
 const liveDeps: InputDeps = {
   consumeStart,
   getSelectedDifficulty,
+  getStartMode,
   consumeRestart,
   consumeSkillActivation,
   getSkillAim,
@@ -115,7 +120,7 @@ export function createInputSystem(deps: InputDeps = liveDeps): System {
     // Start / restart are checked BEFORE the pause guard so they work while the
     // sim is frozen (menu / won / lost).
     if (deps.consumeStart()) {
-      startGame(world, deps.getSelectedDifficulty());
+      startGame(world, deps.getSelectedDifficulty(), deps.getStartMode());
       return world;
     }
     if (deps.consumeRestart()) {

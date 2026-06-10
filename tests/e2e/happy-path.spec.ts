@@ -118,3 +118,32 @@ test("places a Hive and renders its bee swarm over a live wave without crashing"
   await expect(page.locator('[aria-label^="Wave "]')).toBeVisible();
   expect(errors, `runtime errors with the bee swarm live:\n${errors.join("\n")}`).toEqual([]);
 });
+
+/**
+ * Endless front-door (SPEC §6.3) — real-browser proof of the start-screen wiring
+ * fix: the new Endless button must START an endless run (previously it passed the
+ * click EVENT as the mode arg). We click Endless (not Play) and assert the run
+ * begins (HUD live) with zero errors.
+ */
+test("the Endless start-screen button starts an endless run without crashing", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(`console.error: ${msg.text()}`);
+  });
+
+  await page.goto("/");
+  const startDialog = page.getByRole("dialog", { name: /Bloom Bastion/i });
+  await expect(startDialog).toBeVisible();
+
+  // Click Endless (NOT Play) → an endless run begins at the selected (default
+  // Normal) difficulty. The wiring fix means this no longer passes the event.
+  await page.getByRole("button", { name: /Endless/ }).click();
+  await expect(startDialog).toBeHidden();
+  await expect(page.locator('[aria-label="Skills"]')).toBeVisible(); // playing-only → run started
+  await expect(page.locator('div[aria-label$="gold"]')).toHaveAttribute("aria-label", "150 gold");
+
+  await page.waitForTimeout(2500); // sim ticks an endless wave
+  await expect(page.locator('[aria-label^="Wave "]')).toBeVisible();
+  expect(errors, `runtime errors during the endless run:\n${errors.join("\n")}`).toEqual([]);
+});

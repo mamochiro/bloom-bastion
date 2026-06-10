@@ -91,13 +91,16 @@ Luna Crystal sniper / Hive bee-summoner / Bubbler push+slow) × 3 upgrade levels
 **20 §6.3-faithful waves** of **all 8 §6.2 enemies** (Grub, Snail/armor, Flutter/flying,
 Shade/dodge, Plushy/regen, Splitter/split, + bosses **Candy King** @5/10/15 and
 **Neon Dragon** @20) → use **3 skills** (Meteor + Freeze@5 + Gold Rush@10) → win
-("BLOOM PREVAILS") / lose → replay. Data-driven waves (ADR-0003), wave-clear economy,
+("BLOOM PREVAILS") / lose → replay — **or pick ENDLESS** (start-screen button): infinite
+procedurally-scaled waves past 20 (HP ×1.15ⁿ), no win, ends on lives 0 → "RUN ENDED /
+Wave Reached: N". Data-driven waves (ADR-0003), wave-clear economy,
 boss-phase system, difficulty scaling, real SVG sprite art, **VFX** (hit-flash, death
 bursts, floating gold, Meteor impact, idle sprite motion, dragon enrage tint, skill
 screen flash) + **§4.5 adaptive quality**. `bun run check` green (Vitest 228/228),
 ~241KB gz. **Pipeline 10/10 systems REAL — no stubs** (AnimationSystem drives the VFX).
 Tower upgrades L1→L2→L3 + sell wired; **ALL 6 towers built × 3 levels = 18 configs
-(full §6.1 roster COMPLETE)** — Vitest 285/285. `Projectile.special` ui16 (14/16 bits).
+(full §6.1 roster COMPLETE)** + **Endless mode** — Vitest 299/299, ~244KB gz, E2E 3 specs.
+`Projectile.special` ui16 (14/16 bits).
 **Pooled friendly `Minion` entity** (engine: Minion component + minionPool 64 +
 minionQuery; sprite 400-band centered) drives the Hive's bees. **Tracked follow-up:**
 per-projectile slow magnitude+duration (Sugar L3 wants 20%, Bubbler 30% — both reuse

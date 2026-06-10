@@ -19,3 +19,5 @@ playwright-report/
 .claude/*.lock
 scripts/.claude/
 .harness-mem/
+# Generated knowledge-graph cache (/graphify artifact — never committed or linted)
+graphify-out/

@@ -10,6 +10,11 @@
  * The last-wave guard is critical: clearing wave 1 or 2 leaves 0 enemies during
  * the inter-wave gap, which must NOT win — only the final wave's clear wins.
  *
+ * ENDLESS (SPEC §6.3) NEVER wins — it ends solely on lives ≤ 0. The win branch
+ * is hard-gated on `!isEndless()` here (belt-and-braces alongside the injected
+ * `isFinalWaveComplete`, whose default already returns false in endless because
+ * `SpawnSystem.isLastWave()` does) so a test stub can't accidentally win endless.
+ *
  * Iterates backward (releasing strips Enemy, swap-popping the query array).
  * Death particles / floating text are DEFERRED (pure juice, later slice).
  */
@@ -17,7 +22,7 @@ import { Enemy, Health, Position, type World, enemyQuery } from "../../engine/ec
 import type { System } from "../../engine/loop";
 import { ENEMY_BY_TYPE } from "../config/enemies";
 import { TINT } from "../config/tokens";
-import { isSimPaused, setPhase } from "../ecs/game-state";
+import { isEndless, isSimPaused, setPhase } from "../ecs/game-state";
 import { addGold, getLives } from "../ecs/resources";
 import { goldMultiplier } from "../ecs/skills";
 import { releaseEnemy, spawnEnemy } from "../entities/create-enemy";
@@ -73,8 +78,8 @@ export function createDeathSystem(
     // on the FINAL wave's clear (not the inter-wave gaps after waves 1/2).
     if (getLives(world) <= 0) {
       setPhase("lost");
-    } else if (isFinalWaveComplete() && enemyQuery(world).length === 0) {
-      setPhase("won");
+    } else if (!isEndless() && isFinalWaveComplete() && enemyQuery(world).length === 0) {
+      setPhase("won"); // campaign only — endless has no win, ends on lives ≤ 0
     }
     return world;
   };

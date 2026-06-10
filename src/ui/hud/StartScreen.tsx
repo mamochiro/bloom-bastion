@@ -30,7 +30,13 @@ const DIFFICULTY_ACCENT: Record<Difficulty, string> = {
 export function StartScreen() {
   const selected = useSelectedDifficulty();
   return (
-    <StartScreenView selected={selected} onSelectDifficulty={setDifficulty} onPlay={requestStart} />
+    <StartScreenView
+      selected={selected}
+      onSelectDifficulty={setDifficulty}
+      // Wrap so the click event is never passed as the mode arg.
+      onPlay={() => requestStart()}
+      onEndless={() => requestStart("endless")}
+    />
   );
 }
 
@@ -43,10 +49,12 @@ export function StartScreenView({
   selected,
   onSelectDifficulty,
   onPlay,
+  onEndless,
 }: {
   selected: Difficulty;
   onSelectDifficulty: (d: Difficulty) => void;
   onPlay: () => void;
+  onEndless: () => void;
 }) {
   const backdrop: CSSProperties = {
     position: "absolute",
@@ -93,6 +101,32 @@ export function StartScreenView({
     background:
       "linear-gradient(180deg, var(--blossom-mid), color-mix(in srgb, var(--blossom-mid) 70%, var(--bg-abyss)))",
     boxShadow: "0 0 18px -4px var(--blossom-mid)",
+  };
+  // Endless = secondary action (ghost, luna/infinity accent) — same difficulty.
+  const endlessBtn: CSSProperties = {
+    pointerEvents: "auto",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "var(--s2)",
+    width: "100%",
+    minHeight: "var(--touch)",
+    marginTop: "var(--s3)",
+    padding: "0 var(--s5)",
+    borderRadius: "var(--r-pill)",
+    border: "1px solid color-mix(in srgb, var(--luna-mid) 55%, var(--bg-line))",
+    background: "var(--bg-abyss)",
+    cursor: "pointer",
+    fontFamily: "var(--font-display)",
+    fontWeight: 800,
+    fontSize: "var(--fs-md)",
+    color: "var(--luna-light)",
+  };
+  const endlessHint: CSSProperties = {
+    fontFamily: "var(--font-num)",
+    fontSize: "var(--fs-2xs)",
+    color: "var(--text-dim)",
+    marginTop: "var(--s2)",
   };
 
   return (
@@ -151,6 +185,15 @@ export function StartScreenView({
         <button type="button" style={playBtn} onClick={onPlay}>
           <span aria-hidden="true">▶</span> Play
         </button>
+        <button
+          type="button"
+          style={endlessBtn}
+          onClick={onEndless}
+          aria-label="Endless mode — survive infinite scaling waves, no win"
+        >
+          <span aria-hidden="true">♾️</span> Endless
+        </button>
+        <div style={endlessHint}>Endless · infinite scaling waves — survive, no win</div>
       </div>
     </div>
   );

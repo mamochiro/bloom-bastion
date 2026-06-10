@@ -14,7 +14,35 @@
  */
 export type GamePhase = "menu" | "playing" | "won" | "lost";
 
+/**
+ * Run mode: 'campaign' (the 20 authored waves → 'won') or 'endless' (procedural
+ * waves past the authored set, no win — ends only on lose). Chosen on startGame;
+ * PRESERVED across restart (Play Again replays the same mode).
+ */
+export type GameMode = "campaign" | "endless";
+
 let phase: GamePhase = "menu"; // boot into the start screen
+let mode: GameMode = "campaign";
+
+/** Current run mode. */
+export function getGameMode(): GameMode {
+  return mode;
+}
+
+/** Set the run mode (startGame). */
+export function setGameMode(next: GameMode): void {
+  mode = next;
+}
+
+/** True in endless mode (no win; procedural waves past the authored set). */
+export function isEndless(): boolean {
+  return mode === "endless";
+}
+
+/** Reset the mode to campaign (tests / fresh boot). Restart PRESERVES the mode. */
+export function resetGameMode(): void {
+  mode = "campaign";
+}
 
 /** Current authoritative phase. */
 export function getPhase(): GamePhase {

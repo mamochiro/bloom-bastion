@@ -105,6 +105,8 @@ describe("SkillBar container — taps drive the command store", () => {
       wave: 1,
       enemiesAlive: 0,
       gameStatus: "playing",
+      mode: "campaign",
+      score: 0,
       skills: [],
       boss: null,
       selectedTower: null,
@@ -120,6 +122,8 @@ describe("SkillBar container — taps drive the command store", () => {
       wave: 10,
       enemiesAlive: 0,
       gameStatus: "playing",
+      mode: "campaign",
+      score: 0,
       skills: [
         { type: "meteor", ready: true, unlocked: true, cooldownRemaining: 0, cooldownFraction: 0 },
         { type: "freeze", ready: true, unlocked: true, cooldownRemaining: 0, cooldownFraction: 0 },

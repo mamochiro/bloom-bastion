@@ -192,3 +192,81 @@ export const WAVES: readonly Wave[] = [
 
 /** Prep gap (seconds) between a wave clearing and the next wave starting (§6.3). */
 export const INTER_WAVE_DELAY_S = 3;
+
+// --- ENDLESS MODE (SPEC §6.3 "Endless") ------------------------------------
+/**
+ * Endless scales count + HP with the wave index past the authored set. Per §6.3:
+ * **HP ×1.15ⁿ, count ×1.05ⁿ**, **boss every 5 waves (rotating)**. The composition
+ * below is DETERMINISTIC (no RNG → reproducible/testable); §6.3 says "random
+ * composition" — using an n-cycle instead (FLAGGED). `n` = waves into endless
+ * (1 at the first generated wave). The generated `Wave` object is built ONCE when
+ * the wave starts (SpawnSystem), never per-frame.
+ */
+export const ENDLESS_HP_GROWTH = 0.15; // §6.3: HP ×1.15ⁿ
+export const ENDLESS_COUNT_GROWTH = 0.05; // §6.3: count ×1.05ⁿ
+
+/** Enemy-HP multiplier for `waveIndex` (1.0 for the authored waves, before `baseWaveCount`). */
+export function endlessHpMult(waveIndex: number, baseWaveCount: number = WAVES.length): number {
+  if (waveIndex < baseWaveCount) return 1;
+  const n = waveIndex - baseWaveCount + 1;
+  return (1 + ENDLESS_HP_GROWTH) ** n;
+}
+
+/**
+ * Procedurally build the endless `Wave` at `waveIndex` (0-based, ≥ baseWaveCount).
+ * Counts scale ×1.05ⁿ; HP scaling is applied at spawn via {@link endlessHpMult}.
+ * A boss reprises every 5 waves (Neon Dragon every 10, else Candy King). ≤7 groups.
+ */
+export function genEndlessWave(waveIndex: number, baseWaveCount: number = WAVES.length): Wave {
+  const n = Math.max(1, waveIndex - baseWaveCount + 1);
+  const cm = (1 + ENDLESS_COUNT_GROWTH) ** n;
+  const waveNumber = waveIndex + 1; // 1-based, for the boss cadence
+  const groups: SpawnGroup[] = [];
+
+  // Boss every 5 waves (rotating): Neon Dragon every 10, Candy King on the others.
+  if (waveNumber % 5 === 0) {
+    groups.push({
+      enemy: waveNumber % 10 === 0 ? EnemyType.NeonDragon : EnemyType.CandyKing,
+      count: 1,
+      intervalS: 1,
+      startDelayS: 0,
+    });
+  }
+  // Always-present scaling core (monotonic with n).
+  groups.push({
+    enemy: EnemyType.Grub,
+    count: Math.ceil(12 * cm),
+    intervalS: Math.max(0.25, 0.5 - n * 0.005),
+    startDelayS: 0.5,
+  });
+  groups.push({
+    enemy: EnemyType.Snail,
+    count: Math.ceil(4 * cm),
+    intervalS: 0.9,
+    startDelayS: 1.5,
+  });
+  groups.push({
+    enemy: EnemyType.Flutter,
+    count: Math.ceil(4 * cm),
+    intervalS: 0.6,
+    startDelayS: 2,
+  });
+  groups.push({
+    enemy: EnemyType.Shade,
+    count: Math.ceil(3 * cm),
+    intervalS: 0.8,
+    startDelayS: 2.5,
+  });
+  // Tougher enemies cycle in.
+  if (n % 2 === 0)
+    groups.push({
+      enemy: EnemyType.Splitter,
+      count: 2 + Math.floor(n / 4),
+      intervalS: 1.3,
+      startDelayS: 3,
+    });
+  if (n % 3 === 0)
+    groups.push({ enemy: EnemyType.Plushy, count: 2, intervalS: 1.2, startDelayS: 3.5 });
+
+  return { groups };
+}

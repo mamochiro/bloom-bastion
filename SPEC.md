@@ -488,6 +488,34 @@ Waves 4–20 use the same schema, authored incrementally; boss waves (Candy King
 - Boss every 5 waves (rotating)
 - Leaderboard tracks highest wave reached
 
+##### Implementation (M1 — `config/waves.ts` `genEndlessWave` / `endlessHpMult`)
+Endless is **additive**: campaign (the 20 authored waves → "won") is unchanged;
+endless reuses the same difficulty + start path and only differs past the
+authored set. `n` = waves into endless (1 at the first generated wave, i.e. the
+21st overall).
+
+- **HP scaling:** `endlessHpMult(n) = 1.15ⁿ` (LOCKED — matches §6.3). Applied at
+  spawn time via the `Endless._hpMult` module value, set by SpawnSystem on each
+  wave start; **1.0** for all authored waves.
+- **Count scaling:** every group's base count `× 1.05ⁿ` (`Math.ceil`), so counts
+  grow monotonically (LOCKED — matches §6.3).
+- **Boss cadence:** a boss reprises every 5th wave — **Neon Dragon** every 10th,
+  **Candy King** on the others (LOCKED — "boss every 5 waves, rotating").
+- **Composition** ⚠️ **NOT-LOCKED:** §6.3 says "random composition", but the
+  implementation is a **DETERMINISTIC n-cycle** (always-present Grub/Snail/
+  Flutter/Shade core; Splitter cycles in on even `n`, Plushy on `n % 3 === 0`) so
+  endless is reproducible/testable (no RNG). ≤ 7 groups/wave. Swap to seeded RNG
+  later if "random" is required.
+- **No win:** endless **never** triggers "won" — it ends **solely** on lives ≤ 0
+  (enforced in DeathSystem via `!isEndless()` + `SpawnSystem.isLastWave()`
+  returning false in endless).
+
+##### Scoring ⚠️ **NOT-LOCKED** (no leaderboard backend yet)
+- **Score = highest wave cleared** (`getClearedWaves()` — SPEC "wave reached"),
+  surfaced as `GameSnapshot.score`. In **campaign** the same field simply mirrors
+  run progress (cleared waves; 0 before the first clear). Persistent leaderboard
+  storage is deferred (§13 roadmap "Endless mode + leaderboard").
+
 ### 6.4 Active Skills (Player Agency During Wave)
 
 Player has 3 skill slots, unlocked progressively.

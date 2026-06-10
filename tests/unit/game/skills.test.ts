@@ -39,6 +39,7 @@ function makeInput(over: Partial<InputDeps> = {}): InputDeps {
   return {
     consumeStart: () => false,
     getSelectedDifficulty: () => "normal",
+    getStartMode: () => "campaign",
     consumeRestart: () => false,
     consumeSkillActivation: () => null,
     getSkillAim: () => null,

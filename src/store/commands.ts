@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { GameMode } from "../game/ecs/game-state";
 
 /**
  * Transient UI→game command flags (SPEC §8 start + end-game restart). Mirrors
@@ -9,6 +10,8 @@ import { create } from "zustand";
 interface CommandState {
   /** Set by the menu "Play" button; cleared once gameplay starts the run. */
   startRequested: boolean;
+  /** Run mode requested by the start button (Play → campaign, Endless → endless). */
+  startMode: GameMode;
   /** Set by the "Play Again" button; cleared once gameplay consumes it. */
   restartRequested: boolean;
   /** Set by the tower panel's "Upgrade" button; acts on the selected tower. */
@@ -21,16 +24,25 @@ interface CommandState {
 
 const useCommandStore = create<CommandState>()(() => ({
   startRequested: false,
+  startMode: "campaign",
   restartRequested: false,
   upgradeRequested: false,
   sellRequested: false,
   clearSelectionRequested: false,
 }));
 
-/** Request a run start from the menu (imperative — "Play" handler). */
-export const requestStart = (): void => {
-  useCommandStore.setState({ startRequested: true });
+/**
+ * Request a run start from the menu (imperative — start-button handler). Pass
+ * `"endless"` for the Endless button; defaults to `"campaign"` so the existing
+ * "Play" call (`requestStart()`) is unchanged. The mode is read by gameplay via
+ * {@link getStartMode} when it consumes the start command.
+ */
+export const requestStart = (mode: GameMode = "campaign"): void => {
+  useCommandStore.setState({ startRequested: true, startMode: mode });
 };
+
+/** The mode requested by the latest start command (gameplay reads on consume). */
+export const getStartMode = (): GameMode => useCommandStore.getState().startMode;
 
 /**
  * Consume the start request (non-reactive — gameplay's InputSystem). Returns

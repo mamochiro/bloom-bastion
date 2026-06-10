@@ -38,6 +38,7 @@ function makeDeps() {
       return true;
     },
     getSelectedDifficulty: () => state.difficulty,
+    getStartMode: () => "campaign",
     consumeSkillActivation: () => null,
     getSkillAim: () => null,
     clearSkillAim: () => {},

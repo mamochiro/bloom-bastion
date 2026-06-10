@@ -1,7 +1,13 @@
 import { create } from "zustand";
+// Run-mode type — single source of truth is the game-side phase module
+// (type-only import: no runtime coupling, store stays logic-free).
+import type { GameMode } from "../game/ecs/game-state";
 // INTERIM SkillType source — reconcile to "../game/config/skills" once gameplay
 // lands the canonical config (store/skills.ts re-exports it after reconcile).
 import type { SkillType } from "./skills";
+
+// Re-export so UI consumers can import the mode type alongside the hooks.
+export type { GameMode };
 
 /**
  * Per-skill dynamic state mirrored from the ECS (SPEC §6.4). Static identity
@@ -49,6 +55,20 @@ export interface GameSnapshot {
    * cleared. gameplay's UISyncSystem pushes the run/terminal states.
    */
   gameStatus: "menu" | "playing" | "won" | "lost";
+  /**
+   * Run mode (SPEC §6.3): 'campaign' (20 authored waves → 'won') or 'endless'
+   * (procedural waves past the authored set, no win — ends only on lose). Drives
+   * the menu mode toggle and the end-screen copy ("BLOOM PREVAILS" vs an
+   * endless score-summary). gameplay's UISyncSystem mirrors the authoritative
+   * mode set on startGame; PRESERVED across restart.
+   */
+  mode: GameMode;
+  /**
+   * Run score = highest wave cleared (SPEC §6.3 "wave reached"). In endless this
+   * is the headline result; in campaign it simply mirrors progress (cleared
+   * waves, 0 before the first clear). gameplay's UISyncSystem pushes it.
+   */
+  score: number;
   /**
    * Skill cooldown/lock state (SPEC §6.4), one row per skill. Static skill
    * identity lives in the skills config; this carries only the live state.
@@ -108,6 +128,8 @@ export const DEFAULT_SNAPSHOT: GameSnapshot = {
   wave: 1,
   enemiesAlive: 0,
   gameStatus: "menu",
+  mode: "campaign",
+  score: 0,
   skills: [],
   boss: null,
   selectedTower: null,
@@ -145,6 +167,8 @@ export const useWave = (): number => useSnapshotStore((s) => s.wave);
 export const useEnemiesAlive = (): number => useSnapshotStore((s) => s.enemiesAlive);
 export const useGameStatus = (): GameSnapshot["gameStatus"] =>
   useSnapshotStore((s) => s.gameStatus);
+export const useGameMode = (): GameMode => useSnapshotStore((s) => s.mode);
+export const useScore = (): number => useSnapshotStore((s) => s.score);
 export const useSkills = (): readonly SkillSnapshot[] => useSnapshotStore((s) => s.skills);
 export const useBoss = (): BossSnapshot | null => useSnapshotStore((s) => s.boss);
 export const useSelectedTower = (): SelectedTowerSnapshot | null =>

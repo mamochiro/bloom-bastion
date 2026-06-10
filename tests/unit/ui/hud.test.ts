@@ -4,7 +4,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { consumeRestart } from "../../../src/store/commands";
 import { setSnapshot } from "../../../src/store/game-snapshot";
-import { DefeatView, Hud, StatusStripView, VictoryView } from "../../../src/ui/hud/Hud";
+import {
+  DefeatView,
+  EndlessOverlayView,
+  Hud,
+  StatusStripView,
+  VictoryView,
+} from "../../../src/ui/hud/Hud";
 
 // RTL is not wired in this project. The HUD container (`Hud`) wires the snapshot
 // hooks to PURE presentational views; we render those views to static markup
@@ -67,6 +73,19 @@ describe("VictoryView", () => {
   });
 });
 
+describe("EndlessOverlayView", () => {
+  it("shows the wave reached (score) and a Play Again, with no win/victory copy", () => {
+    const html = render(createElement(EndlessOverlayView, { score: 23 }));
+    expect(html).toContain("RUN ENDED");
+    expect(html).toContain("Wave Reached: 23");
+    expect(html).toContain("Play Again");
+    expect(html).toContain('role="alertdialog"');
+    expect(html).not.toMatch(/prevail|victory/i);
+    expect(html).not.toMatch(/#[0-9a-fA-F]{3,6}\b/);
+    expect(html).not.toMatch(/font-size:\s*\d/);
+  });
+});
+
 describe("Hud container — end-game phase gating", () => {
   // Client render in jsdom: the live snapshot store drives the gating
   // (renderToStaticMarkup would read only zustand's INITIAL server snapshot).
@@ -80,6 +99,8 @@ describe("Hud container — end-game phase gating", () => {
       wave: 1,
       enemiesAlive: 0,
       gameStatus: "playing",
+      mode: "campaign",
+      score: 0,
       skills: [],
       boss: null,
       selectedTower: null,
@@ -88,13 +109,19 @@ describe("Hud container — end-game phase gating", () => {
     container = null;
   });
 
-  const renderHudWith = async (status: "menu" | "playing" | "won" | "lost", wave: number) => {
+  const renderHudWith = async (
+    status: "menu" | "playing" | "won" | "lost",
+    wave: number,
+    opts: { mode?: "campaign" | "endless"; score?: number } = {},
+  ) => {
     setSnapshot({
       gold: 150,
       lives: 14,
       wave,
       enemiesAlive: 0,
       gameStatus: status,
+      mode: opts.mode ?? "campaign",
+      score: opts.score ?? 0,
       skills: [],
       boss: null,
       selectedTower: null,
@@ -129,18 +156,33 @@ describe("Hud container — end-game phase gating", () => {
     expect(html).not.toContain("BLOOM PREVAILS");
   });
 
-  it("renders the victory overlay (no skill bar) when gameStatus is 'won'", async () => {
-    const html = await renderHudWith("won", 20);
+  it("renders the campaign victory overlay (BLOOM PREVAILS) on win in campaign mode", async () => {
+    const html = await renderHudWith("won", 20, { mode: "campaign" });
     expect(html).toContain("BLOOM PREVAILS");
     expect(html).not.toContain('aria-label="Skills"');
     expect(html).not.toContain("BASTION FELL");
   });
 
-  it("renders the defeat overlay (no skill bar) when gameStatus is 'lost'", async () => {
-    const html = await renderHudWith("lost", 9);
+  it("renders the campaign defeat overlay (BASTION FELL) on loss in campaign mode", async () => {
+    const html = await renderHudWith("lost", 9, { mode: "campaign" });
     expect(html).toContain("BASTION FELL");
     expect(html).not.toContain('aria-label="Skills"');
     expect(html).not.toContain("BLOOM PREVAILS");
+  });
+
+  it("shows the ENDLESS game-over summary (Wave Reached + score) on loss in endless mode", async () => {
+    const html = await renderHudWith("lost", 14, { mode: "endless", score: 14 });
+    expect(html).toContain("RUN ENDED");
+    expect(html).toContain("Wave Reached: 14");
+    // Endless never claims a win and is not the campaign defeat screen.
+    expect(html).not.toContain("BLOOM PREVAILS");
+    expect(html).not.toContain("BASTION FELL");
+  });
+
+  it("never shows a win state in endless mode (even if status is 'won')", async () => {
+    const html = await renderHudWith("won", 30, { mode: "endless", score: 30 });
+    expect(html).not.toContain("BLOOM PREVAILS");
+    expect(html).not.toMatch(/prevail|victory/i);
   });
 });
 

@@ -20,7 +20,8 @@ import {
 } from "../../../src/engine/ecs/world";
 import { DEFAULT_DIFFICULTY, setActiveDifficulty } from "../../../src/game/config/difficulty";
 import { resetDamageRng } from "../../../src/game/ecs/apply-damage";
-import { resetPhase } from "../../../src/game/ecs/game-state";
+import { resetEndlessHpMult } from "../../../src/game/ecs/endless";
+import { resetGameMode, resetPhase } from "../../../src/game/ecs/game-state";
 import { _resetResourcesCache } from "../../../src/game/ecs/resources";
 import { resetSelection } from "../../../src/game/ecs/selection";
 import { resetSkills } from "../../../src/game/ecs/skills";
@@ -39,6 +40,8 @@ export function resetGameWorld(world: World): void {
   for (const eid of Array.from(minionQuery(world))) releaseMinion(world, eid);
   _resetResourcesCache();
   resetPhase(); // back to 'playing' so the pause guard doesn't freeze the next test
+  resetGameMode(); // back to 'campaign' (mode state is a module singleton → shuffle-safe)
+  resetEndlessHpMult(); // endless HP scaling back to 1.0
   SpawnSystem.reset(); // re-arm the live wave instance (shared singleton)
   setActiveDifficulty(DEFAULT_DIFFICULTY); // back to 'normal' (1.0× mults) for isolation
   resetSkills(); // cooldowns / buffs / clearedWaves → 0

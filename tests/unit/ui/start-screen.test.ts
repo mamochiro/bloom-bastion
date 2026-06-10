@@ -2,8 +2,9 @@ import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
+import { consumeStart, getStartMode, requestStart } from "../../../src/store/commands";
 import type { Difficulty } from "../../../src/store/difficulty";
-import { StartScreenView } from "../../../src/ui/hud/StartScreen";
+import { StartScreen, StartScreenView } from "../../../src/ui/hud/StartScreen";
 
 const noop = () => {};
 const renderView = (selected: Difficulty) =>
@@ -12,6 +13,7 @@ const renderView = (selected: Difficulty) =>
       selected,
       onSelectDifficulty: noop,
       onPlay: noop,
+      onEndless: noop,
     }),
   );
 
@@ -28,6 +30,14 @@ describe("StartScreenView", () => {
     expect(html).toContain("Normal — 150 gold, 20 lives");
     expect(html).toContain("Hardcore — 100 gold, 15 lives");
     expect(html).toContain("Play");
+  });
+
+  it("renders an Endless action with a no-win hint", () => {
+    const html = renderView("normal");
+    expect(html).toContain("Endless");
+    expect(html).toContain("no win"); // hint + aria-label make the rules clear
+    // Endless must not imply a win/victory.
+    expect(html).not.toMatch(/prevail|victory/i);
   });
 
   it("highlights exactly the selected difficulty (one checked radio)", () => {
@@ -58,15 +68,21 @@ describe("StartScreenView — interaction", () => {
     selected: Difficulty,
     onSelectDifficulty: (d: Difficulty) => void,
     onPlay: () => void,
+    onEndless: () => void = noop,
   ) => {
     container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
     await act(async () => {
-      root.render(createElement(StartScreenView, { selected, onSelectDifficulty, onPlay }));
+      root.render(
+        createElement(StartScreenView, { selected, onSelectDifficulty, onPlay, onEndless }),
+      );
     });
     return root;
   };
+
+  const buttonWith = (text: string) =>
+    [...(container?.querySelectorAll("button") ?? [])].find((b) => b.textContent?.includes(text));
 
   it("tapping a difficulty radio reports its id", async () => {
     const picked: Difficulty[] = [];
@@ -94,13 +110,68 @@ describe("StartScreenView — interaction", () => {
     const root = await mount("normal", noop, () => {
       played += 1;
     });
-    const play = [...(container?.querySelectorAll("button") ?? [])].find((b) =>
-      b.textContent?.includes("Play"),
-    );
     await act(async () => {
-      play?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      buttonWith("Play")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(played).toBe(1);
+    await act(async () => root.unmount());
+  });
+
+  it("Endless button calls onEndless", async () => {
+    let endless = 0;
+    const root = await mount("normal", noop, noop, () => {
+      endless += 1;
+    });
+    await act(async () => {
+      buttonWith("Endless")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(endless).toBe(1);
+    await act(async () => root.unmount());
+  });
+});
+
+describe("StartScreen container — Play vs Endless fire requestStart with the right mode", () => {
+  (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+  let container: HTMLDivElement | null = null;
+
+  afterEach(() => {
+    requestStart(); // reset start mode to campaign
+    consumeStart();
+    container?.remove();
+    container = null;
+  });
+
+  const mountScreen = async () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(createElement(StartScreen));
+    });
+    return root;
+  };
+  const click = async (text: string) => {
+    const btn = [...(container?.querySelectorAll("button") ?? [])].find((b) =>
+      b.textContent?.includes(text),
+    );
+    await act(async () => {
+      btn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+  };
+
+  it("Play fires requestStart() in campaign mode", async () => {
+    const root = await mountScreen();
+    await click("Play");
+    expect(consumeStart()).toBe(true);
+    expect(getStartMode()).toBe("campaign");
+    await act(async () => root.unmount());
+  });
+
+  it("Endless fires requestStart('endless')", async () => {
+    const root = await mountScreen();
+    await click("Endless");
+    expect(consumeStart()).toBe(true);
+    expect(getStartMode()).toBe("endless");
     await act(async () => root.unmount());
   });
 });
