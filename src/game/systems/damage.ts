@@ -23,6 +23,7 @@ import {
 } from "../../engine/ecs/world";
 import { gameTime } from "../../engine/loop";
 import type { System } from "../../engine/loop";
+import { COST_BLOCKED, flowField, flowIndexAt } from "../../engine/pathfinding/flow-field";
 import {
   ANTI_ARMOR_MULT,
   CHAIN_FALLOFF,
@@ -31,6 +32,8 @@ import {
   CRIT_MULT,
   PETAL_MAX_TARGETS,
   PETAL_RADIUS_TILES,
+  PUSH_BIG_TILES,
+  PUSH_TILES,
   SLOW_DURATION_S,
   SPECIAL,
   SPLASH_RADIUS_BIG_TILES,
@@ -38,6 +41,8 @@ import {
   STICKY_SLOW_DURATION_S,
   STUN_CHANCE,
   STUN_DURATION_S,
+  TSUNAMI_HALF_WIDTH_TILES,
+  TSUNAMI_LENGTH_TILES,
 } from "../config/combat";
 import { ENEMY_BY_TYPE, ENEMY_FLAGS, EnemyType } from "../config/enemies";
 import { TINT } from "../config/tokens";
@@ -47,6 +52,7 @@ import { isSimPaused } from "../ecs/game-state";
 import { spawnEnemy } from "../entities/create-enemy";
 import { releaseProjectile } from "../entities/create-projectile";
 import { CELL } from "../map/coords";
+import { costGrid } from "../map/level-1";
 import { flashEntity, spawnBurst } from "../vfx";
 
 const CHAIN_RADIUS_SQ = (CHAIN_RADIUS_TILES * CELL) ** 2;
@@ -216,6 +222,77 @@ function aoeSplash(
   }
 }
 
+/**
+ * Knockback (Bubbler): shove `eid` `pushTiles` BACKWARD along its reverse
+ * flow-field (the opposite of the direction PathFollow moves it). Applies to
+ * fliers too (a water shove, not a ground splash). Zero-alloc.
+ *
+ * CLAMP (all-or-nothing): apply the FULL push only if the landing point is
+ * on-map AND not a blocked cell; otherwise skip (enemy stays). This covers the
+ * edges — pushing past the spawn / into a wall / off-map → no move.
+ */
+function pushBack(eid: number, pushTiles: number): void {
+  const x = Position.x[eid];
+  const y = Position.y[eid];
+  const i = flowIndexAt(x, y);
+  if (i < 0) return; // off-field
+  const dx = flowField[i * 2];
+  const dy = flowField[i * 2 + 1];
+  if (dx === 0 && dy === 0) return; // no flow direction (goal/blocked) → no push
+  const pushPx = pushTiles * CELL;
+  const nx = x - dx * pushPx; // opposite the forward flow
+  const ny = y - dy * pushPx;
+  const ni = flowIndexAt(nx, ny);
+  if (ni < 0 || costGrid[ni] >= COST_BLOCKED) return; // off-map / wall → skip
+  Position.x[eid] = nx;
+  Position.y[eid] = ny;
+}
+
+const TSUNAMI_HALF_WIDTH_PX = TSUNAMI_HALF_WIDTH_TILES * CELL;
+const TSUNAMI_LENGTH_PX = TSUNAMI_LENGTH_TILES * CELL;
+
+/**
+ * Tsunami line (Bubbler L3): UNCAPPED — hit every GROUND enemy on the lane line
+ * through the primary (axis = the flow-field direction at the primary's cell;
+ * "front row" = the lane). Each takes `damage` + slow + `pushTiles` knockback.
+ * The primary is excluded (it already took the direct hit). Zero-alloc inline
+ * scan. FLAG: line is along the lane axis through the target (computable at
+ * hit-time without the tower origin), full lane width, bounded by TSUNAMI_LENGTH.
+ */
+function tsunamiLine(
+  world: World,
+  primary: number,
+  damage: number,
+  slowUntil: number,
+  pushTiles: number,
+): void {
+  const px = Position.x[primary];
+  const py = Position.y[primary];
+  const i = flowIndexAt(px, py);
+  if (i < 0) return;
+  let ax = flowField[i * 2];
+  let ay = flowField[i * 2 + 1];
+  if (ax === 0 && ay === 0) {
+    ax = 1; // fallback: the lane runs +x (near the goal the flow is (0,0))
+    ay = 0;
+  }
+  const enemies = enemyQuery(world);
+  for (let n = 0; n < enemies.length; n++) {
+    const e = enemies[n];
+    if (e === primary || Health.current[e] <= 0) continue;
+    if ((Enemy.flags[e] & ENEMY_FLAGS.Flying) !== 0) continue; // ground only
+    const rx = Position.x[e] - px;
+    const ry = Position.y[e] - py;
+    const along = rx * ax + ry * ay; // signed distance along the lane axis
+    const perp = Math.abs(rx * -ay + ry * ax); // perpendicular distance to the line
+    if (perp > TSUNAMI_HALF_WIDTH_PX || along > TSUNAMI_LENGTH_PX || along < -TSUNAMI_LENGTH_PX)
+      continue;
+    applyDamage(e, damage);
+    if (slowUntil > 0) Status.slowedUntil[e] = slowUntil;
+    pushBack(e, pushTiles);
+  }
+}
+
 export const DamageSystem: System = (world: World, _dt: number): World => {
   if (isSimPaused()) return world; // frozen on win/lose
   const hits = hitQuery(world);
@@ -264,6 +341,16 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
         // Overcharge (Stormcloud L3): 20% stun. Reuses the Freeze stun path
         // (PathFollow honours Status.stunnedUntil).
         Status.stunnedUntil[target] = gameTime() + STUN_DURATION_S;
+      }
+      if ((special & SPECIAL.Push) !== 0) {
+        // Bubbler knockback: shove the target back (0.5 base, 1.0 with Tidal Wave).
+        const pushTiles = (special & SPECIAL.PushBig) !== 0 ? PUSH_BIG_TILES : PUSH_TILES;
+        // Tsunami (Bubbler L3): line the OTHER lane enemies BEFORE pushing the
+        // primary, so the line axis is centred on the primary's original cell.
+        if ((special & SPECIAL.Line) !== 0) {
+          tsunamiLine(world, target, damage, gameTime() + SLOW_DURATION_S, pushTiles);
+        }
+        pushBack(target, pushTiles);
       }
       // Boss phase transitions (SPEC §6.2) — no-op for non-boss enemies.
       checkBossPhases(world, target);

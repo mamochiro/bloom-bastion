@@ -35,6 +35,7 @@ export const SPRITE = {
   "tower-sugarcannon-l1": 3,
   "tower-luna-l1": 4,
   "tower-hive-l1": 5,
+  "tower-bubbler-l1": 6,
   // ── enemies (100–199) ──
   "enemy-grub": 100,
   "enemy-snail": 101,
@@ -73,6 +74,7 @@ export const ASSET_PATH: Readonly<Record<SpriteKey, string>> = {
   "tower-sugarcannon-l1": "/sprites/tower-sugarcannon-l1.svg",
   "tower-luna-l1": "/sprites/tower-luna-l1.svg",
   "tower-hive-l1": "/sprites/tower-hive-l1.svg",
+  "tower-bubbler-l1": "/sprites/tower-bubbler-l1.svg",
   "minion-bee": "/sprites/minion-bee.svg",
   "minion-queen": "/sprites/minion-queen.svg",
   "enemy-grub": "/sprites/enemy-grub.svg",

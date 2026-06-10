@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+  <!-- Bloom Bastion — Bubbler tower, level 1 (crowd-control, SPEC §6.1: 12 DMG / 2.0 range / 0.8s / 80g;
+       pushback + 30% slow, L3 Tsunami line attack). Source: design-assets/sprites_towers.jsx TowerBubble({level:1}).
+       Aquatic wave/bubble cannon — the cool aqua family that rounds out the roster (warm Blossom/Sugar/Hive,
+       cool Stormcloud/Luna, aqua Bubbler).
+       Tokens (design-assets/export/design-tokens.css → resolved to hex; sprites are not CSS-var themed at runtime):
+       bubble-light #c6fff0, bubble-mid #4fe0c4, bubble-dark #1f9e85, bg-deep #1a0f2e.
+       L1 = hex pedestal + single fountain bowl + spout column + top bubble cluster (cannon muzzle) + baked
+       rising bubbles + white glow core. Tiered bowls (L2/L3) and the Tsunami fan (L3) omitted. Idle bob /
+       rise CSS keyframes from the source are DEFERRED (juice slice). -->
+  <defs>
+    <!-- Static aqua glow (replaces drop-shadow(0 0 7px bubble-mid)). -->
+    <filter id="bu1-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#4fe0c4" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- hex pedestal -->
+  <g>
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#1f9e85"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#4fe0c4"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#1f9e85" opacity="0.7"/>
+  </g>
+
+  <!-- baked rising bubbles (designer: cx=46+(i%4)*9, cy=96; staggered radii) -->
+  <g>
+    <circle cx="46" cy="100" r="2" fill="#c6fff0" opacity="0.8"/>
+    <circle cx="55" cy="92" r="3" fill="#c6fff0" opacity="0.75"/>
+    <circle cx="64" cy="98" r="2.5" fill="#c6fff0" opacity="0.8"/>
+    <circle cx="73" cy="88" r="2" fill="#c6fff0" opacity="0.7"/>
+  </g>
+
+  <g filter="url(#bu1-glow)">
+    <!-- fountain bowl (single tier, designer y=122 w=30) -->
+    <path d="M30 122 Q60 134 90 122 Q60 127 30 122 Z" fill="#1f9e85"/>
+    <ellipse cx="60" cy="122" rx="30" ry="5" fill="#4fe0c4"/>
+    <ellipse cx="60" cy="122" rx="21" ry="3" fill="#c6fff0" opacity="0.7"/>
+
+    <!-- spout column (water jet) -->
+    <rect x="57" y="66" width="6" height="56" rx="3" fill="#4fe0c4" opacity="0.5"/>
+
+    <!-- top bubble cluster (wave-cannon muzzle) -->
+    <circle cx="60" cy="60" r="13" fill="#4fe0c4" opacity="0.5"/>
+    <circle cx="60" cy="60" r="9" fill="#1f9e85" opacity="0.55"/>
+    <circle cx="54" cy="64" r="6" fill="#c6fff0" opacity="0.75"/>
+    <circle cx="68" cy="56" r="4" fill="#c6fff0" opacity="0.6"/>
+  </g>
+
+  <!-- glowing core orb (white / bubble-light) -->
+  <circle cx="62" cy="56" r="8" fill="#c6fff0" opacity="0.18"/>
+  <circle cx="62" cy="56" r="4.5" fill="#fff"/>
+  <circle cx="62" cy="56" r="4.5" fill="#4fe0c4" opacity="0.45"/>
+  <circle cx="60.5" cy="54.5" r="1.5" fill="#fff" opacity="0.9"/>
+</svg>

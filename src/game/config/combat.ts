@@ -84,6 +84,20 @@ export const PIERCE_MAX_TARGETS = 3;
 export const BEAM_WIDTH_TILES = 0.4;
 
 /**
+ * Bubbler (crowd-control). Knockback shoves the target BACKWARD along its reverse
+ * flow-field (0.5 tile base, 1.0 with Tidal Wave). Bubbler's slow REUSES the
+ * shared Slow path → global 40% reduction / 2s duration (the existing convention)
+ * — §6.1's "30% / 1s" would need a per-projectile slow-magnitude+duration field
+ * (now wanted by Sugar L3 + Bubbler → tracked as a follow-up); NOT-LOCKED, flagged.
+ * Tsunami (L3) is an uncapped LINE through the target along the lane axis:
+ * LINE_HALF_WIDTH perpendicular, LINE_LENGTH along (both NOT-LOCKED slice values).
+ */
+export const PUSH_TILES = 0.5;
+export const PUSH_BIG_TILES = 1.0;
+export const TSUNAMI_HALF_WIDTH_TILES = 0.5;
+export const TSUNAMI_LENGTH_TILES = 4.0;
+
+/**
  * Projectile special-effect bit flags, packed into `Projectile.special` — now a
  * **ui16** field (8/8 bits were full at 8 towers' specials; widened for Luna).
  * The TowerAI sets them from the tower's CURRENT-LEVEL stats; DamageSystem reads
@@ -114,4 +128,10 @@ export const SPECIAL = {
   Pierce: 1 << 9,
   /** 25% chance ×2 damage (Luna L3 "Moonburst"). */
   Crit: 1 << 10,
+  /** Knockback the target along the reverse flow-field (Bubbler). */
+  Push: 1 << 11,
+  /** Bigger knockback (Bubbler L2 "Tidal Wave": 0.5→1.0 tile). */
+  PushBig: 1 << 12,
+  /** Line attack — also hit all ground enemies along the lane (Bubbler L3 "Tsunami"). */
+  Line: 1 << 13,
 } as const;

@@ -365,12 +365,30 @@ User can also force quality via Settings: Auto / Low / High.
     share the proximity count (flagged). (A true home-leash would need an engine
     `Minion.home` field — not requested.)
 
-#### 🌊 Bubbler — Crowd Control
+#### 🌊 Bubbler — Crowd Control *(BUILT — completes the 6-tower set)*
 - **Base:** 12 DMG, 2.0 range, 0.8s fire rate
 - **Cost:** 80 gold
-- **Special:** Pushes enemies back 0.5 tiles + 30% slow
-- **L2 — Tidal Wave (+70g):** +DMG, push 1.0 tile
-- **L3 — Tsunami (+140g):** Line attack hits all in front row
+- **Special:** Pushes enemies back 0.5 tiles + slow
+- **L2 — Tidal Wave (+70g):** +8 DMG (→20) + push 1.0 tile
+- **L3 — Tsunami (+140g):** Line attack — hits all ground enemies along the lane
+- **Implementation (flagged):**
+  - **L2 "+DMG":** chose **+8 → 20 DMG** (§6.1 gives no number). L3 keeps 20.
+  - **Push-back:** shoves the target BACKWARD along its **reverse flow-field** (the
+    opposite of the PathFollow forward direction) by 0.5 tile (1.0 with Tidal
+    Wave). Applies to **fliers too** (a water shove). **Clamp = all-or-nothing:**
+    the full push lands only if the destination cell is on-map AND not blocked;
+    otherwise it's skipped (covers pushing past the spawn / into a wall / off-map).
+  - **Slow:** REUSES the shared Slow path → global **40%** reduction / **2s**
+    (the existing convention); §6.1's "30%" + a shorter duration would need a
+    per-projectile slow magnitude+duration field — now wanted by **Sugar L3 +
+    Bubbler**, tracked as a follow-up (NOT-LOCKED, flagged).
+  - **Tsunami line:** UNCAPPED — every **ground** enemy on the lane line through
+    the target (axis = the flow-field direction at the target's cell; "front row"
+    = the lane), within `0.5 tile` perpendicular and `±4 tiles` along (both
+    NOT-LOCKED), takes damage + slow + push. Computed at HIT-time from the
+    target's lane axis (no tower origin needed); fliers skipped.
+  - Slow/push/line are isolated SPECIAL bits (Push/PushBig/Line) — the other five
+    towers are unaffected. (`Projectile.special` ui16 now 14/16 bits used.)
 
 #### Upgrade implementation values (Blossom + Stormcloud built; NOT-LOCKED slice numbers)
 

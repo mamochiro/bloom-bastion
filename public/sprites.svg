@@ -109,6 +109,13 @@
       <feComposite in2="b" operator="in" result="g"/>
       <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <!-- 🌊 Bubbler crowd-control tower aqua glow (replaces drop-shadow(0 0 7px bubble-mid)). -->
+    <filter id="atlas-bu-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#4fe0c4" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
     <!-- 🐝 Bee minion glow (worker). -->
     <filter id="atlas-bee-glow" x="-70%" y="-70%" width="240%" height="240%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/>
@@ -265,6 +272,34 @@
     <circle cx="60" cy="98" r="4" fill="#fff"/>
     <circle cx="60" cy="98" r="4" fill="#ffb74d" opacity="0.45"/>
     <circle cx="58.6" cy="96.6" r="1.4" fill="#fff" opacity="0.9"/>
+  </symbol>
+
+  <!-- 🌊 Bubbler tower, L1 — grounded at viewBox bottom (0 0 120 150).
+       Crowd-control (SPEC §6.1, 80g): hex pedestal + fountain bowl + spout column + wave-cannon bubble cluster
+       + baked rising bubbles. Aqua family (bubble-light/mid/dark). -->
+  <symbol id="tower-bubbler-l1" viewBox="0 0 120 150">
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#1f9e85"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#4fe0c4"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#1f9e85" opacity="0.7"/>
+    <circle cx="46" cy="100" r="2" fill="#c6fff0" opacity="0.8"/>
+    <circle cx="55" cy="92" r="3" fill="#c6fff0" opacity="0.75"/>
+    <circle cx="64" cy="98" r="2.5" fill="#c6fff0" opacity="0.8"/>
+    <circle cx="73" cy="88" r="2" fill="#c6fff0" opacity="0.7"/>
+    <g filter="url(#atlas-bu-glow)">
+      <path d="M30 122 Q60 134 90 122 Q60 127 30 122 Z" fill="#1f9e85"/>
+      <ellipse cx="60" cy="122" rx="30" ry="5" fill="#4fe0c4"/>
+      <ellipse cx="60" cy="122" rx="21" ry="3" fill="#c6fff0" opacity="0.7"/>
+      <rect x="57" y="66" width="6" height="56" rx="3" fill="#4fe0c4" opacity="0.5"/>
+      <circle cx="60" cy="60" r="13" fill="#4fe0c4" opacity="0.5"/>
+      <circle cx="60" cy="60" r="9" fill="#1f9e85" opacity="0.55"/>
+      <circle cx="54" cy="64" r="6" fill="#c6fff0" opacity="0.75"/>
+      <circle cx="68" cy="56" r="4" fill="#c6fff0" opacity="0.6"/>
+    </g>
+    <circle cx="62" cy="56" r="8" fill="#c6fff0" opacity="0.18"/>
+    <circle cx="62" cy="56" r="4.5" fill="#fff"/>
+    <circle cx="62" cy="56" r="4.5" fill="#4fe0c4" opacity="0.45"/>
+    <circle cx="60.5" cy="54.5" r="1.5" fill="#fff" opacity="0.9"/>
   </symbol>
 
   <!-- 🐛 Grub enemy (0 0 100 100). -->

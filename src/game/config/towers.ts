@@ -184,6 +184,29 @@ const HIVE: TowerConfig = {
   ],
 };
 
+/**
+ * 🌊 Bubbler (base) — SPEC §6.1: 12 DMG, 2.0 range, 0.8s fire rate, 80g.
+ * Special: slow + knockback 0.5 tiles. L2 "Tidal Wave" → +DMG (chose +8 → 20;
+ * §6.1 gives no number, flagged) + push 1.0 tile. L3 "Tsunami" → line attack
+ * (hits all ground enemies along the lane). Slow/push/line are SPECIAL bits.
+ */
+const BUBBLER: TowerConfig = {
+  id: "bubbler",
+  name: "Bubbler",
+  damage: 12,
+  range: 2.0,
+  cooldown: 0.8,
+  cost: 80,
+  sprite: "tower-bubbler-l1",
+  slow: { speedReduction: 0.4, durationS: 2 },
+  upgrades: [
+    // L2 "Tidal Wave" +70g: +8 DMG (→20) + bigger push (0.5→1.0 tile).
+    { label: "Tidal Wave", cost: 70, damage: 20, range: 2.0, cooldown: 0.8 },
+    // L3 "Tsunami" +140g: line attack (no §6.1 damage bump → stays 20).
+    { label: "Tsunami", cost: 140, damage: 20, range: 2.0, cooldown: 0.8 },
+  ],
+};
+
 /** Numeric `Tower.typeId` (ui8) — the index stored in the ECS component. */
 export const TowerType = {
   Blossom: 0,
@@ -191,6 +214,7 @@ export const TowerType = {
   SugarCannon: 2,
   Luna: 3,
   Hive: 4,
+  Bubbler: 5,
 } as const;
 
 export type TowerTypeId = (typeof TowerType)[keyof typeof TowerType];
@@ -205,6 +229,7 @@ export const TOWERS: Readonly<Record<string, TowerConfig>> = {
   sugarcannon: SUGAR_CANNON,
   luna: LUNA,
   hive: HIVE,
+  bubbler: BUBBLER,
 };
 
 /** Lookup by numeric `Tower.typeId` (what factories/systems carry). */
@@ -214,6 +239,7 @@ export const TOWER_BY_TYPE: Readonly<Record<number, TowerConfig>> = {
   [TowerType.SugarCannon]: SUGAR_CANNON,
   [TowerType.Luna]: LUNA,
   [TowerType.Hive]: HIVE,
+  [TowerType.Bubbler]: BUBBLER,
 };
 
 /**
@@ -226,6 +252,7 @@ export const PLACEABLE_TOWERS: readonly TowerTypeId[] = [
   TowerType.SugarCannon,
   TowerType.Luna,
   TowerType.Hive,
+  TowerType.Bubbler,
 ];
 
 /** Highest tower level (SPEC §6.1: 3). */
@@ -265,6 +292,12 @@ function levelSpecial(typeId: number, level: number): number {
     let s = SPECIAL.AntiArmor; // all levels: +30% vs armored
     if (level >= 2) s |= SPECIAL.Pierce; // Pierce: beam hits up to 3 in a line
     if (level >= 3) s |= SPECIAL.Crit; // Moonburst: 25% crit ×2
+    return s;
+  }
+  if (typeId === TowerType.Bubbler) {
+    let s = SPECIAL.Slow | SPECIAL.Push; // all levels: slow + knockback
+    if (level >= 2) s |= SPECIAL.PushBig; // Tidal Wave: 0.5→1.0 tile push
+    if (level >= 3) s |= SPECIAL.Line; // Tsunami: line attack
     return s;
   }
   return SPECIAL.None;
