@@ -39,8 +39,12 @@ describe("Stormcloud (chain lightning)", () => {
     expect(cfg.chain).toEqual({ maxTargets: 3, falloff: 0.5 });
   });
 
-  it("exports PLACEABLE_TOWERS = [Blossom, Stormcloud] for the UI", () => {
-    expect(PLACEABLE_TOWERS).toEqual([TowerType.Blossom, TowerType.Stormcloud]);
+  it("exports PLACEABLE_TOWERS = [Blossom, Stormcloud, SugarCannon] for the UI", () => {
+    expect(PLACEABLE_TOWERS).toEqual([
+      TowerType.Blossom,
+      TowerType.Stormcloud,
+      TowerType.SugarCannon,
+    ]);
   });
 
   it("a placed Stormcloud fires a CHAIN (not SLOW) projectile at the nearest in-range enemy", () => {

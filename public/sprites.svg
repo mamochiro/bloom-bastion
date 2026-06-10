@@ -83,6 +83,18 @@
       <feComposite in2="b" operator="in" result="g"/>
       <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <!-- 🍭 Sugar Cannon candy glow (replaces drop-shadow(0 0 8px sugar-mid)). -->
+    <filter id="atlas-su-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#ff7a6b" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="atlas-su-swirl" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="40%" stop-color="#ffd9d2"/>
+      <stop offset="100%" stop-color="#ff7a6b"/>
+    </radialGradient>
     <!-- 🐲 Neon Dragon (final boss) — the biggest, most luminous glow in the sheet.
          Two-layer neon halo (mint body + violet accent) baked statically. -->
     <filter id="atlas-dragon-glow" x="-80%" y="-80%" width="260%" height="260%">
@@ -147,6 +159,27 @@
     <circle cx="60" cy="58" r="5" fill="#fff"/>
     <circle cx="60" cy="58" r="5" fill="#fff" opacity="0.55"/>
     <circle cx="58.5" cy="56.5" r="1.6" fill="#fff" opacity="0.9"/>
+  </symbol>
+
+  <!-- 🍭 Sugar Cannon tower, L1 — grounded at viewBox bottom (0 0 120 150).
+       AoE candy-splash mortar: hex pedestal + candy barrel + lollipop swirl disc (s=0.82). -->
+  <symbol id="tower-sugarcannon-l1" viewBox="0 0 120 150">
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#d6463a"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#ff7a6b"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#d6463a" opacity="0.7"/>
+    <rect x="46" y="86" width="28" height="40" rx="13" fill="#d6463a"/>
+    <rect x="50" y="86" width="8" height="40" rx="4" fill="#ff7a6b" opacity="0.6"/>
+    <g filter="url(#atlas-su-glow)" transform="translate(60 62)">
+      <circle r="19.68" fill="url(#atlas-su-swirl)"/>
+      <path d="M0.0 0.0 L1.1 0.5 L1.6 1.7 L1.3 3.3 L-0.1 4.7 L-2.4 5.3 L-5.1 4.7 L-7.7 2.7 L-9.3 -0.5 L-9.4 -4.6 L-7.6 -8.8 L-3.9 -12.2 L1.2 -13.9 L7.1 -13.4 L12.6 -10.3 L16.8 -4.9"
+        fill="none" stroke="#d6463a" stroke-width="2.62" stroke-linecap="round"/>
+      <circle r="19.68" fill="none" stroke="#fff" stroke-width="2" opacity="0.7"/>
+    </g>
+    <circle cx="60" cy="62" r="9" fill="#fff" opacity="0.18"/>
+    <circle cx="60" cy="62" r="4.5" fill="#fff"/>
+    <circle cx="60" cy="62" r="4.5" fill="#ff7a6b" opacity="0.45"/>
+    <circle cx="58.5" cy="60.5" r="1.5" fill="#fff" opacity="0.9"/>
   </symbol>
 
   <!-- 🐛 Grub enemy (0 0 100 100). -->

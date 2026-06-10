@@ -30,6 +30,9 @@ import {
   PETAL_RADIUS_TILES,
   SLOW_DURATION_S,
   SPECIAL,
+  SPLASH_RADIUS_BIG_TILES,
+  SPLASH_RADIUS_TILES,
+  STICKY_SLOW_DURATION_S,
   STUN_CHANCE,
   STUN_DURATION_S,
 } from "../config/combat";
@@ -45,6 +48,8 @@ import { flashEntity, spawnBurst } from "../vfx";
 
 const CHAIN_RADIUS_SQ = (CHAIN_RADIUS_TILES * CELL) ** 2;
 const PETAL_RADIUS_SQ = (PETAL_RADIUS_TILES * CELL) ** 2;
+const SPLASH_RADIUS_SQ = (SPLASH_RADIUS_TILES * CELL) ** 2;
+const SPLASH_RADIUS_BIG_SQ = (SPLASH_RADIUS_BIG_TILES * CELL) ** 2;
 
 /**
  * Boss HP-threshold phases (SPEC §6.2). After a boss takes damage, trigger any
@@ -178,6 +183,36 @@ function petalStorm(world: World, primary: number, damage: number, until: number
   }
 }
 
+/**
+ * AoE splash (Sugar Cannon): full `damage` to EVERY ground enemy within
+ * `radiusSq` of the primary — UNCAPPED (a direct enemyQuery scan, NOT the
+ * capped nearest-N scratch). No damage falloff. The primary already took its
+ * direct hit, so it's skipped. Flying enemies are skipped (ground candy splash,
+ * matching Meteor's "AoE skips fliers"). `slowUntil > 0` (Sticky Sugar) also
+ * stamps the shared slow on each splashed enemy. Zero-alloc.
+ */
+function aoeSplash(
+  world: World,
+  primary: number,
+  damage: number,
+  radiusSq: number,
+  slowUntil: number,
+): void {
+  const px = Position.x[primary];
+  const py = Position.y[primary];
+  const enemies = enemyQuery(world);
+  for (let i = 0; i < enemies.length; i++) {
+    const e = enemies[i];
+    if (e === primary || Health.current[e] <= 0) continue;
+    if ((Enemy.flags[e] & ENEMY_FLAGS.Flying) !== 0) continue; // ground splash skips fliers
+    const dx = Position.x[e] - px;
+    const dy = Position.y[e] - py;
+    if (dx * dx + dy * dy > radiusSq) continue;
+    applyDamage(e, damage);
+    if (slowUntil > 0) Status.slowedUntil[e] = slowUntil;
+  }
+}
+
 export const DamageSystem: System = (world: World, _dt: number): World => {
   if (isSimPaused()) return world; // frozen on win/lose
   const hits = hitQuery(world);
@@ -206,6 +241,16 @@ export const DamageSystem: System = (world: World, _dt: number): World => {
       if ((special & SPECIAL.AoeSlow) !== 0) {
         // Petal Storm (Blossom L3): damage + slow splash to nearby enemies.
         petalStorm(world, target, damage, gameTime() + SLOW_DURATION_S);
+      }
+      if ((special & SPECIAL.Splash) !== 0) {
+        // Sugar Cannon: uncapped AoE to ground enemies in radius (1.5/2.0 tiles).
+        // Sticky Sugar (SplashSlow) also slows them. Independent of Chain/AoeSlow
+        // (distinct bit; only this tower's projectiles carry Splash).
+        const radiusSq =
+          (special & SPECIAL.SplashBig) !== 0 ? SPLASH_RADIUS_BIG_SQ : SPLASH_RADIUS_SQ;
+        const slowUntil =
+          (special & SPECIAL.SplashSlow) !== 0 ? gameTime() + STICKY_SLOW_DURATION_S : 0;
+        aoeSplash(world, target, damage, radiusSq, slowUntil);
       }
       if ((special & SPECIAL.Stun) !== 0 && hasStatus && damageRoll() < STUN_CHANCE) {
         // Overcharge (Stormcloud L3): 20% stun. Reuses the Freeze stun path

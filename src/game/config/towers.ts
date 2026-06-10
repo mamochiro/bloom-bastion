@@ -13,7 +13,7 @@
  *                 the `Tower.cooldown` countdown after each shot.
  *  - `cost`     — gold to place (SPEC §6.1).
  */
-import { SPECIAL } from "./combat";
+import { SPECIAL, SPLASH_RADIUS_BIG_TILES, SPLASH_RADIUS_TILES } from "./combat";
 import type { SpriteKey } from "./sprites";
 
 /** Per-level stat overrides reached by an upgrade (SPEC §6.1 L2/L3). */
@@ -113,10 +113,34 @@ const STORMCLOUD: TowerConfig = {
   ],
 };
 
+/**
+ * 🍭 Sugar Cannon (base) — SPEC §6.1: 30 DMG, 2.0 range, 1.8s fire rate, 75g.
+ * Special: AoE splash, 1.5-tile radius (uncapped — hits every ground enemy in
+ * radius). L2 "Bigger Boom" → +20 DMG + 0.5 splash; L3 "Sticky Sugar" → splash
+ * also slows. Splash radius / slow live in the SPECIAL bits + combat constants;
+ * range/cooldown carry over per level (§6.1 gives no L2/L3 change for them).
+ */
+const SUGAR_CANNON: TowerConfig = {
+  id: "sugarcannon",
+  name: "Sugar Cannon",
+  damage: 30,
+  range: 2.0,
+  cooldown: 1.8,
+  cost: 75,
+  sprite: "tower-sugarcannon-l1",
+  upgrades: [
+    // L2 "Bigger Boom" +60g: +20 DMG (50), +0.5 splash (→2.0); range/cd unchanged.
+    { label: "Bigger Boom", cost: 60, damage: 50, range: 2.0, cooldown: 1.8 },
+    // L3 "Sticky Sugar" +120g: splash also slows (no §6.1 damage bump → 50).
+    { label: "Sticky Sugar", cost: 120, damage: 50, range: 2.0, cooldown: 1.8 },
+  ],
+};
+
 /** Numeric `Tower.typeId` (ui8) — the index stored in the ECS component. */
 export const TowerType = {
   Blossom: 0,
   Stormcloud: 1,
+  SugarCannon: 2,
 } as const;
 
 export type TowerTypeId = (typeof TowerType)[keyof typeof TowerType];
@@ -128,19 +152,25 @@ export const BASE_TOWER_LEVEL = 1;
 export const TOWERS: Readonly<Record<string, TowerConfig>> = {
   blossom: BLOSSOM,
   stormcloud: STORMCLOUD,
+  sugarcannon: SUGAR_CANNON,
 };
 
 /** Lookup by numeric `Tower.typeId` (what factories/systems carry). */
 export const TOWER_BY_TYPE: Readonly<Record<number, TowerConfig>> = {
   [TowerType.Blossom]: BLOSSOM,
   [TowerType.Stormcloud]: STORMCLOUD,
+  [TowerType.SugarCannon]: SUGAR_CANNON,
 };
 
 /**
  * Placeable towers in display order — one card per entry for the UI TowerPicker.
  * Carries the numeric typeId so the UI can pass it straight to placement/build.
  */
-export const PLACEABLE_TOWERS: readonly TowerTypeId[] = [TowerType.Blossom, TowerType.Stormcloud];
+export const PLACEABLE_TOWERS: readonly TowerTypeId[] = [
+  TowerType.Blossom,
+  TowerType.Stormcloud,
+  TowerType.SugarCannon,
+];
 
 /** Highest tower level (SPEC §6.1: 3). */
 export const MAX_TOWER_LEVEL = 3;
@@ -152,6 +182,8 @@ export interface LevelStats {
   readonly cooldown: number;
   /** Packed `SPECIAL` bits for this level's projectile. */
   readonly special: number;
+  /** AoE splash radius in tiles (Sugar Cannon), or undefined for non-splash towers. */
+  readonly splashRadius?: number;
 }
 
 /** `SPECIAL` bitmask a tower's projectile carries at `level` (1..3). */
@@ -167,7 +199,19 @@ function levelSpecial(typeId: number, level: number): number {
     if (level >= 3) s |= SPECIAL.Stun; // Overcharge: stun chance
     return s;
   }
+  if (typeId === TowerType.SugarCannon) {
+    let s = SPECIAL.Splash; // all levels splash
+    if (level >= 2) s |= SPECIAL.SplashBig; // Bigger Boom: 1.5→2.0 radius
+    if (level >= 3) s |= SPECIAL.SplashSlow; // Sticky Sugar: splash slows
+    return s;
+  }
   return SPECIAL.None;
+}
+
+/** AoE splash radius (tiles) for `typeId` at `level`, or undefined if non-splash. */
+function levelSplashRadius(typeId: number, level: number): number | undefined {
+  if (typeId !== TowerType.SugarCannon) return undefined;
+  return level >= 2 ? SPLASH_RADIUS_BIG_TILES : SPLASH_RADIUS_TILES; // 2.0 / 1.5
 }
 
 /** Stats for `typeId` at `level` (1 = base flat fields; 2/3 = upgrade overrides). */
@@ -179,6 +223,7 @@ export function towerLevelStats(typeId: number, level: number): LevelStats {
     range: up ? up.range : cfg.range,
     cooldown: up ? up.cooldown : cfg.cooldown,
     special: levelSpecial(typeId, level),
+    splashRadius: levelSplashRadius(typeId, level),
   };
 }
 

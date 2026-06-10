@@ -59,6 +59,19 @@ export const PETAL_MAX_TARGETS = 3;
 export const PETAL_RADIUS_TILES = 1.0;
 
 /**
+ * AoE splash (Sugar Cannon, SPEC §6.1 "1.5-tile splash radius"). UNCAPPED — hits
+ * EVERY ground enemy in radius (not the capped nearest-N). L2 "Bigger Boom"
+ * grows it to 2.0 tiles. No damage falloff (NOT-LOCKED: §6.1 gives none — full
+ * damage to all). L3 "Sticky Sugar" adds a short slow to splashed enemies for
+ * STICKY_SLOW_DURATION_S — reusing the shared slow path, so the *reduction* is
+ * the game's single global SLOW_REDUCTION (40%); SPEC's "20%" would need a
+ * per-enemy slow-magnitude field (deferred) — NOT-LOCKED, flagged.
+ */
+export const SPLASH_RADIUS_TILES = 1.5;
+export const SPLASH_RADIUS_BIG_TILES = 2.0;
+export const STICKY_SLOW_DURATION_S = 1.0;
+
+/**
  * Projectile special-effect bit flags, packed into `Projectile.special` (ui8).
  * The TowerAI sets them from the tower's CURRENT-LEVEL stats; DamageSystem reads
  * them on landing. Distinct bits so a projectile can carry several effects.
@@ -76,4 +89,10 @@ export const SPECIAL = {
   Stun: 1 << 3,
   /** AoE damage + slow splash (Blossom L3 "Petal Storm"). */
   AoeSlow: 1 << 4,
+  /** Uncapped radius AoE splash to ground enemies (Sugar Cannon). */
+  Splash: 1 << 5,
+  /** Bigger splash radius (Sugar Cannon L2 "Bigger Boom": 1.5→2.0 tiles). */
+  SplashBig: 1 << 6,
+  /** Splash also applies a short slow (Sugar Cannon L3 "Sticky Sugar"). */
+  SplashSlow: 1 << 7,
 } as const;

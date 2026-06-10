@@ -30,6 +30,7 @@ export const SPRITE = {
   // ── towers (1–99) ──
   "tower-blossom-l1": 1,
   "tower-stormcloud-l1": 2,
+  "tower-sugarcannon-l1": 3,
   // ── enemies (100–199) ──
   "enemy-grub": 100,
   "enemy-snail": 101,
@@ -62,6 +63,7 @@ export function spriteId(key: SpriteKey): number {
 export const ASSET_PATH: Readonly<Record<SpriteKey, string>> = {
   "tower-blossom-l1": "/sprites/tower-blossom-l1.svg",
   "tower-stormcloud-l1": "/sprites/tower-stormcloud-l1.svg",
+  "tower-sugarcannon-l1": "/sprites/tower-sugarcannon-l1.svg",
   "enemy-grub": "/sprites/enemy-grub.svg",
   "enemy-snail": "/sprites/enemy-snail.svg",
   "enemy-candyking": "/sprites/enemy-candyking.svg",

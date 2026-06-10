@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+  <!-- Bloom Bastion — Sugar Cannon tower, level 1. Source: design-assets/sprites_towers.jsx TowerSugar({level:1}).
+       Tokens resolved to hex (sprites are not CSS-var themed at runtime):
+       sugar-light #ffd9d2, sugar-mid #ff7a6b, sugar-dark #d6463a, gold #ffd700.
+       L1 = hex pedestal + candy cannon barrel + lollipop swirl disc (s=0.82) + white core.
+       Extra barrel / dashed ring (L2/L3) and the L3 ring are omitted. Idle bob / spin-slow /
+       pulse-glow CSS keyframes from the source are DEFERRED (juice slice). -->
+  <defs>
+    <!-- Static candy glow (replaces drop-shadow(0 0 8px sugar-mid)). -->
+    <filter id="su1-glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="b"/>
+      <feFlood flood-color="#ff7a6b" flood-opacity="0.9"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Lollipop swirl gradient (white core → sugar-light → sugar-mid). -->
+    <radialGradient id="su1-swirl" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="40%" stop-color="#ffd9d2"/>
+      <stop offset="100%" stop-color="#ff7a6b"/>
+    </radialGradient>
+  </defs>
+
+  <!-- hex pedestal -->
+  <g>
+    <ellipse cx="60" cy="140" rx="34" ry="9" fill="#000" opacity="0.28"/>
+    <path d="M30 132 L60 122 L90 132 L90 138 L60 148 L30 138 Z" fill="#d6463a"/>
+    <path d="M30 132 L60 122 L90 132 L60 142 Z" fill="#ff7a6b"/>
+    <path d="M30 132 L60 142 L60 148 L30 138 Z" fill="#d6463a" opacity="0.7"/>
+  </g>
+
+  <!-- candy cannon barrel -->
+  <g>
+    <rect x="46" y="86" width="28" height="40" rx="13" fill="#d6463a"/>
+    <rect x="50" y="86" width="8" height="40" rx="4" fill="#ff7a6b" opacity="0.6"/>
+  </g>
+
+  <!-- lollipop swirl disc (center 60,62; scale 0.82 → r 19.68) -->
+  <g filter="url(#su1-glow)" transform="translate(60 62)">
+    <circle r="19.68" fill="url(#su1-swirl)"/>
+    <path d="M0.0 0.0 L1.1 0.5 L1.6 1.7 L1.3 3.3 L-0.1 4.7 L-2.4 5.3 L-5.1 4.7 L-7.7 2.7 L-9.3 -0.5 L-9.4 -4.6 L-7.6 -8.8 L-3.9 -12.2 L1.2 -13.9 L7.1 -13.4 L12.6 -10.3 L16.8 -4.9"
+      fill="none" stroke="#d6463a" stroke-width="2.62" stroke-linecap="round"/>
+    <circle r="19.68" fill="none" stroke="#fff" stroke-width="2" opacity="0.7"/>
+  </g>
+
+  <!-- glowing core orb (white) -->
+  <circle cx="60" cy="62" r="9" fill="#fff" opacity="0.18"/>
+  <circle cx="60" cy="62" r="4.5" fill="#fff"/>
+  <circle cx="60" cy="62" r="4.5" fill="#ff7a6b" opacity="0.45"/>
+  <circle cx="58.5" cy="60.5" r="1.5" fill="#fff" opacity="0.9"/>
+</svg>

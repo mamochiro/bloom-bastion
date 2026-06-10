@@ -299,12 +299,19 @@ User can also force quality via Settings: Auto / Low / High.
 - **L2 — Static Field (+75g):** Chain +1 target, +15 DMG
 - **L3 — Overcharge (+150g):** 20% stun chance per hit
 
-#### 🍭 Sugar Cannon — AoE Splash
+#### 🍭 Sugar Cannon — AoE Splash *(BUILT)*
 - **Base:** 30 DMG, 2.0 range, 1.8s fire rate
 - **Cost:** 75 gold
 - **Special:** 1.5-tile splash radius
-- **L2 — Bigger Boom (+60g):** +20 DMG, +0.5 splash
-- **L3 — Sticky Sugar (+120g):** Splash applies 20% slow (1s)
+- **L2 — Bigger Boom (+60g):** +20 DMG (→50), +0.5 splash (→2.0 tiles)
+- **L3 — Sticky Sugar (+120g):** Splash applies a short slow (1s)
+- **Implementation (flagged):** splash is **UNCAPPED** — full damage to EVERY
+  enemy in radius, **no falloff** (NOT-LOCKED — §6.1 gives none). It hits
+  **GROUND enemies only** (skips Flying, matching Meteor's "AoE skips fliers") —
+  a direct projectile hit can still target/strike a flier, but the splash won't.
+  L3 reuses the shared slow path, so the *reduction* is the game's single global
+  **40%** (not §6.1's "20%", which needs a per-enemy slow-magnitude field —
+  deferred); the **1s duration** is honored. No L3 damage bump (§6.1 gives none).
 
 #### 🌙 Luna Crystal — Sniper
 - **Base:** 60 DMG, 4.0 range, 1.5s fire rate
